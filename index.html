@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Route 66 Family Challenge</title>
+  <meta name="description" content="Interactive Route 66 family activity challenge for America 2026." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="bg-glow"></div>
+  <div class="road-lines"></div>
+
+  <section id="login" class="login-screen">
+    <div class="login-card pop-in">
+      <p class="eyebrow">America 2026</p>
+      <h1>Route 66 Family Challenge</h1>
+      <p>Barstow to Vegas: scavenger hunts, photo proof, quizzes, sketch missions and one suspiciously motivating voucher at the end.</p>
+      <form id="loginForm">
+        <label>Username<input id="username" autocomplete="username" placeholder="Jacob, Lily, Hannah, Ethan, or test" required></label>
+        <label>Password<input id="password" type="password" autocomplete="current-password" placeholder="Not needed for test"></label>
+        <button class="primary" type="submit">Start the challenge</button>
+        <p id="loginError" class="error"></p>
+      </form>
+      <p class="small">Use username <b>test</b> for preview mode. No password, no locks.</p>
+    </div>
+  </section>
+
+  <main id="site" class="hidden">
+    <header class="hero panel reveal show">
+      <nav class="topbar">
+        <div><span class="pill">ROUTE 66</span><span id="who" class="who"></span></div>
+        <div class="actions">
+          <button id="printBtn" class="ghost">Print A4/A5</button>
+          <button id="resetBtn" class="ghost danger">Reset</button>
+          <button id="logoutBtn" class="ghost">Log out</button>
+        </div>
+      </nav>
+      <div class="hero-grid">
+        <div>
+          <p class="eyebrow">12–20 August 2026</p>
+          <h2>Unlock the road from Barstow to Vegas</h2>
+          <p>Each stop has a scavenger hunt, a photo proof box, a real place image, facts, a mini activity, and a quiz. In normal mode, wrong quiz answers send you back to the start. Yes, brutal. Effective, though.</p>
+          <div class="stats">
+            <div><strong id="doneCount">0</strong><span>done</span></div>
+            <div><strong id="totalCount">0</strong><span>stops</span></div>
+            <div><strong id="percentCount">0%</strong><span>complete</span></div>
+          </div>
+        </div>
+        <div class="mission-card">
+          <h3>Mission rules</h3>
+          <ol>
+            <li>Open the unlocked stop.</li>
+            <li>Add photo proof. It stays on this browser only.</li>
+            <li>Tick every scavenger item.</li>
+            <li>Finish the activity and quiz.</li>
+            <li>Unlock the final voucher vault.</li>
+          </ol>
+        </div>
+      </div>
+    </header>
+
+    <aside id="rail" class="rail"></aside>
+    <section id="stops" class="stops"></section>
+
+    <section id="reward" class="reward panel reveal">
+      <p class="eyebrow">Final unlock</p>
+      <h2>Voucher Vault</h2>
+      <p id="rewardText">Complete every stop correctly to unlock the final message.</p>
+      <button id="amazonBtn" class="amazon" disabled><span>amazon</span><i></i></button>
+      <p id="voucher" class="voucher hidden">Speak to Ethan for your £15 Amazon voucher!!</p>
+    </section>
+
+    <footer class="footer panel">
+      <p>Progress is saved locally in this browser. Photo proof is not uploaded to any server. The images are remote real-location images where possible, mostly from Wikimedia Commons.</p>
+    </footer>
+  </main>
+
+  <template id="stopTemplate">
+    <article class="stop panel reveal">
+      <div class="image-box">
+        <img class="stop-img" loading="lazy" alt="">
+        <div class="locked"><strong>🔒 Locked</strong><span></span></div>
+      </div>
+      <div class="stop-content">
+        <p class="kicker"></p>
+        <h2></h2>
+        <p class="subtitle"></p>
+        <div class="chips"></div>
+        <div class="two-col">
+          <section class="card"><h3>Fun facts</h3><ul class="facts"></ul></section>
+          <section class="card proof"><h3>Arrival photo proof</h3><p>Choose a photo. It stays in this browser only.</p><input class="photo" type="file" accept="image/*"><p class="proofStatus"></p></section>
+        </div>
+        <section class="card"><h3>Scavenger hunt</h3><div class="hunt"></div></section>
+        <section class="card activity"><h3></h3><p></p><div class="activitySlot"></div></section>
+        <section class="card quiz-card"><h3>True/false + quick quiz</h3><div class="quiz"></div><button class="secondary check">Check answers</button><p class="quizResult"></p></section>
+        <div class="complete-row"><button class="primary complete">Complete this stop</button><span class="completeStatus"></span></div>
+        <p class="credit"></p>
+      </div>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
