@@ -1,50 +1,1034 @@
-const USER_HASHES={Jacob:'03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4',Lily:'fe2592b42a727e977f055947385b709cc82b16b9a87f88c6abf3900d65d0cdc3',Hannah:'9975baa75e1603273cbd3d94746a0442e22d5dc0268750dd45229f343f53fe19',Ethan:'08f61ac43fc9a9d5bd3d41f6dc2976ad27d8d5d8422e2ac87c12b98364a331fe'};
-const STOPS=[
-{id:'lax',day:'12 Aug 2026',unlock:'2026-08-12',emoji:'✈️',title:'LAX to Barstow',hotel:'Home2 Suites Barstow',loc:'Los Angeles to Barstow, California',img:'https://commons.wikimedia.org/wiki/Special:FilePath/Los_Angeles_International_Airport_Aerial_2009.jpg?width=1600',credit:'Wikimedia Commons image: Los Angeles International Airport.',facts:['Route 66 is famous as the classic American road-trip road.','The drive out of Los Angeles slowly swaps city for Mojave Desert scenery.','Barstow became important because roads and railways crossed the desert here.'],hunt:['Spot an aeroplane taking off or landing.','Find your first palm tree.','See a road sign pointing towards mountains or desert.','Find a petrol station price board.','Spot the first huge American-style road sign.'],activity:{type:'quick',title:'First impressions postcard',prompt:'Write three words that describe your first proper American road view.'},quiz:[['Route 66 is linked with long-distance American road trips.','true'],['Barstow is on the coast next to the sea.','false'],['What should you start looking for today?','Desert scenery',['Desert scenery','Snowy ski slopes','London buses']]]},
-{id:'barstow',day:'12 Aug 2026',unlock:'2026-08-12',emoji:'🏨',title:'Barstow Base Camp',hotel:'Home2 Suites Barstow',loc:'Barstow, California',img:'https://commons.wikimedia.org/wiki/Special:FilePath/Route_66_Mother_Road_Museum_Barstow_California.jpg?width=1600',credit:'Wikimedia Commons image: Barstow Route 66 area.',facts:['Barstow sits in the Mojave Desert.','It has long been a road and railway stop.','Travellers used Barstow before crossing more empty desert stretches.'],hunt:['Find the word Barstow on a sign or receipt.','Spot a cactus, yucca or desert plant.','Find a Route 66 shield shape.','Count three pickup trucks.','Find a mountain or rocky hill in the distance.'],activity:{type:'quick',title:'Hotel inspector',prompt:'Give the hotel a road-trip usefulness score out of 10 and explain why.'},quiz:[['Barstow is a good place to notice desert scenery.','true'],['The Mojave Desert is a rainforest.','false'],['Which thing fits Barstow best?','Road stop',['Road stop','Ski village','Fishing island']]]},
-{id:'calico',day:'13 Aug 2026',unlock:'2026-08-13',emoji:'👻',title:'Calico Ghost Town',hotel:'Best Western Plus King’s Inn, Kingman',loc:'Calico, California',img:'https://commons.wikimedia.org/wiki/Special:FilePath/CalicoEntrance.jpg?width=1600',credit:'Wikimedia Commons image: Calico entrance.',facts:['Calico began in 1881 as a silver mining town.','Walter Knott later restored the town as a visitor attraction.','The big CALICO letters make the hillside rather unsubtle, which is exactly the point.'],hunt:['Find the big CALICO letters.','Walk on a wooden boardwalk.','Spot mining equipment.','Find a jail or sheriff clue.','Find a building that looks like a Western film set.'],activity:{type:'sketch',title:'Sketch the ghost town street',prompt:'Use the empty box to sketch the most Wild West-looking building you can find.'},quiz:[['Calico was connected with silver mining.','true'],['Calico is best known as a modern skyscraper city.','false'],['What should you look for on the hillside?','The word CALICO',['The word CALICO','A giant snowman','A beach pier']]]},
-{id:'bagdad',day:'13 Aug 2026',unlock:'2026-08-13',emoji:'☕',title:'Bagdad Cafe',hotel:'Best Western Plus King’s Inn, Kingman',loc:'Newberry Springs, California',img:'https://commons.wikimedia.org/wiki/Special:FilePath/Bagdad_Cafe_Newberry_Springs.jpg?width=1600',credit:'Wikimedia Commons image: Bagdad Cafe.',facts:['The film Bagdad Cafe helped make this stop famous.','The cafe is in Newberry Springs, not the old abandoned town of Bagdad.','Roadside cafes are a huge part of Route 66 character.'],hunt:['Find the cafe sign.','Spot a Route 66 sticker or shield.','Find one unusual object inside or nearby.','Take a photo of the outside.','Find something that looks older than your parents, then say nothing because survival matters.'],activity:{type:'quick',title:'Cafe critic card',prompt:'Write one dramatic sentence reviewing the cafe, even if you only saw the sign.'},quiz:[['Bagdad Cafe is linked to a film.','true'],['It is famous because it is inside a giant shopping centre.','false'],['Which word fits this stop best?','Roadside',['Roadside','Underwater','Medieval']]]},
-{id:'roys',day:'13 Aug 2026',unlock:'2026-08-13',emoji:'🏜️',title:'Roy’s Motel and Cafe',hotel:'Best Western Plus King’s Inn, Kingman',loc:'Amboy, California',img:'https://commons.wikimedia.org/wiki/Special:FilePath/Roy%27s_Cafe_%26_Motel.jpg?width=1600',credit:'Wikimedia Commons image: Roy’s Cafe and Motel.',facts:['Roy’s started as a gas and service station on Route 66.','Its neon sign is one of the classic Route 66 photo stops.','Amboy became much quieter after Interstate 40 took traffic away.'],hunt:['Find the Roy’s sign.','Find a Route 66 shield on or near the road.','Spot the white motel cabins.','Find the cafe building glass front.','Count how many people are taking photos. Tourists: predictable, but useful.'],activity:{type:'sketch',title:'Sketch Roy’s',prompt:'Use the blank box to sketch Roy’s, the sign, or your own upgraded Route 66 sign idea.'},quiz:[['Roy’s is in Amboy, California.','true'],['Roy’s is mainly famous for being a huge theme park ride.','false'],['What is the most famous thing to photograph here?','The Roy’s sign',['The Roy’s sign','A castle drawbridge','A ski lift']]]},
-{id:'needles',day:'13 Aug 2026',unlock:'2026-08-13',emoji:'🛣️',title:'Needles',hotel:'Best Western Plus King’s Inn, Kingman',loc:'Needles, California',img:'https://commons.wikimedia.org/wiki/Special:FilePath/NeedlesCaliforniaSign.jpg?width=1600',credit:'Wikimedia Commons style image link: Needles sign.',facts:['Needles is near the Colorado River.','It is one of the hottest towns on the old Route 66 corridor.','The name came from pointed mountain peaks nearby, not from sewing equipment, mercifully.'],hunt:['Find the word Needles.','Spot the Colorado River or a river sign.','Find a very dry-looking landscape.','Spot a train or railway clue.','Find an old Route 66-style motel sign.'],activity:{type:'quick',title:'Heat detective',prompt:'Write one thing that proves you are now properly in the desert.'},quiz:[['Needles is near the Colorado River.','true'],['Needles is in Alaska.','false'],['What is Needles famous for on road trips?','Heat and desert roads',['Heat and desert roads','Rainforests','Penguin beaches']]]},
-{id:'oatman',day:'13 Aug 2026',unlock:'2026-08-13',emoji:'🐴',title:'Oatman',hotel:'Best Western Plus King’s Inn, Kingman',loc:'Oatman, Arizona',img:'https://commons.wikimedia.org/wiki/Special:FilePath/Oatman_AZ_Street.jpg?width=1600',credit:'Wikimedia Commons style image link: Oatman street.',facts:['Oatman began as a mining town.','Wild burros often wander the street.','The road into Oatman is a twisty old Route 66 mountain section.'],hunt:['Find a burro.','Spot an old wooden shop front.','Find a sign mentioning Route 66.','Look for a mining-town clue.','Find the funniest souvenir in a shop window.'],activity:{type:'quick',title:'Burro report',prompt:'Describe the most chaotic burro moment you see, or invent a newspaper headline for it.'},quiz:[['Oatman is known for burros wandering around.','true'],['Oatman is a giant airport terminal.','false'],['What kind of place was Oatman originally?','Mining town',['Mining town','Space station','Beach resort']]]},
-{id:'kingman',day:'13 Aug 2026',unlock:'2026-08-13',emoji:'🏨',title:'Kingman Base Camp',hotel:'Best Western Plus King’s Inn, Kingman',loc:'Kingman, Arizona',img:'https://commons.wikimedia.org/wiki/Special:FilePath/Kingman_Arizona_Route_66.jpg?width=1600',credit:'Wikimedia Commons style image link: Kingman Route 66.',facts:['Kingman is a major Arizona Route 66 stop.','It is often used as a base for nearby old-road sections.','Railway history and road-trip history overlap here.'],hunt:['Find a Kingman sign.','Spot a train, track or railway clue.','Find a Route 66 mural or shield.','Find a diner-style sign.','Pick the best-looking road-trip snack.'],activity:{type:'quick',title:'Kingman ranking',prompt:'Rank today’s stops so far from best to worst, then defend your number one.'},quiz:[['Kingman is in Arizona.','true'],['Kingman is known for being underwater.','false'],['Which road is Kingman strongly linked with?','Route 66',['Route 66','The M25','Abbey Road']]]},
-{id:'peach',day:'14 Aug 2026',unlock:'2026-08-14',emoji:'🌵',title:'Peach Springs',hotel:'The Grand Hotel at the Grand Canyon',loc:'Peach Springs, Arizona',img:'https://commons.wikimedia.org/wiki/Special:FilePath/Hualapai_Mountains_from_Peach_Springs_AZ.jpg?width=1600',credit:'Wikimedia Commons style image link: Peach Springs area.',facts:['Peach Springs is on the Hualapai Reservation.','It is one of the old Route 66 communities in Arizona.','The landscape is dry, open and very different from home.'],hunt:['Find a Peach Springs sign.','Spot a cactus or desert plant.','Find a long straight road view.','Notice a reservation or Hualapai reference.','Find a red, orange or sandy-coloured rock.'],activity:{type:'quick',title:'Desert colour chart',prompt:'List three colours you can see in the landscape.'},quiz:[['Peach Springs is on Route 66 in Arizona.','true'],['Peach Springs is in Scotland.','false'],['What landscape should you expect?','Dry desert scenery',['Dry desert scenery','Tropical jungle','Frozen lake']]]},
-{id:'seligman',day:'14 Aug 2026',unlock:'2026-08-14',emoji:'🛣️',title:'Seligman',hotel:'The Grand Hotel at the Grand Canyon',loc:'Seligman, Arizona',img:'https://commons.wikimedia.org/wiki/Special:FilePath/Seligman_Arizona_Route_66.jpg?width=1600',credit:'Wikimedia Commons style image link: Seligman Route 66.',facts:['Seligman is one of the most famous Route 66 revival towns.','It is packed with old signs, cars and roadside Americana.','It helped keep Route 66 tourism alive after the interstate bypassed old towns.'],hunt:['Find a classic car.','Find a colourful Route 66 sign.','Spot a funny shop display.','Find something that looks deliberately retro.','Take a photo that looks like a postcard.'],activity:{type:'sketch',title:'Design a Route 66 sign',prompt:'Sketch the sign or shop front that would make the best postcard.'},quiz:[['Seligman is strongly linked with Route 66 tourism.','true'],['Seligman is famous for submarine tours.','false'],['What should you see lots of here?','Retro road signs',['Retro road signs','Igloos','Volcano lava boats']]]},
-{id:'meteor',day:'14 Aug 2026',unlock:'2026-08-14',emoji:'☄️',title:'Meteor Crater',hotel:'The Grand Hotel at the Grand Canyon',loc:'Winslow, Arizona',img:'https://commons.wikimedia.org/wiki/Special:FilePath/Meteor_Crater_-_Arizona.jpg?width=1600',credit:'Wikimedia Commons image: Meteor Crater.',facts:['Meteor Crater is a huge impact crater in Arizona.','It was made by a meteorite impact thousands of years ago.','It is so big that photos struggle to show the scale properly. Very rude of physics.'],hunt:['Find the crater rim.','Spot a display about meteorites.','Find the best viewpoint.','Look for a size comparison sign.','Find something that explains impact energy.'],activity:{type:'quick',title:'Space reporter',prompt:'Write a breaking-news headline as if you had just seen the meteor hit.'},quiz:[['Meteor Crater was formed by an impact.','true'],['Meteor Crater was dug by pirates.','false'],['What is the main thing to look at?','A huge crater',['A huge crater','A football stadium','A coral reef']]]},
-{id:'bearizona',day:'14 Aug 2026',unlock:'2026-08-14',emoji:'🐻',title:'Bearizona',hotel:'The Grand Hotel at the Grand Canyon',loc:'Williams, Arizona',img:'https://commons.wikimedia.org/wiki/Special:FilePath/Bearizona_Wildlife_Park.jpg?width=1600',credit:'Wikimedia Commons style image link: Bearizona wildlife park.',facts:['Bearizona is a wildlife park near Williams, Arizona.','Some areas are drive-through, so you view animals from the car.','The name is a terrible pun, which legally means it must be respected.'],hunt:['Spot a bear.','Find an animal crossing sign.','Spot antlers or horns.','Find the funniest animal expression.','See if anyone says “aww” more than five times.'],activity:{type:'quick',title:'Animal awards',prompt:'Give awards for funniest animal, calmest animal and most dramatic animal.'},quiz:[['Bearizona is near Williams, Arizona.','true'],['Bearizona is a museum about teddy bears only.','false'],['What should you mainly look for?','Wildlife',['Wildlife','Skyscrapers','Trains only']]]},
-{id:'grand',day:'14-15 Aug 2026',unlock:'2026-08-14',emoji:'🏨',title:'Grand Canyon',hotel:'The Grand Hotel at the Grand Canyon',loc:'Grand Canyon South Rim, Arizona',img:'https://commons.wikimedia.org/wiki/Special:FilePath/Grand_Canyon_view_from_Pima_Point_2010.jpg?width=1600',credit:'Wikimedia Commons image: Grand Canyon view.',facts:['The Grand Canyon is carved mainly by the Colorado River.','The South Rim is the most visited part of the national park.','The canyon shows layers of rock like a giant natural history book.'],hunt:['Find the Colorado River if visible.','Spot at least three rock colours.','Find a warning sign near the rim.','Listen for a language that is not English.','Take a dramatic canyon photo.'],activity:{type:'dot',title:'Grand Canyon dot-to-dot',prompt:'Click the dots in order from 1 to 12 to make a canyon-style outline.'},quiz:[['The Colorado River helped carve the Grand Canyon.','true'],['The Grand Canyon is a tiny ditch behind a supermarket.','false'],['What should you avoid near the edge?','Messing around',['Messing around','Standing back safely','Reading signs']]]},
-{id:'desertview',day:'15 Aug 2026',unlock:'2026-08-15',emoji:'🏜️',title:'Desert View Watchtower',hotel:'The Grand Hotel at the Grand Canyon',loc:'Grand Canyon East Rim, Arizona',img:'https://commons.wikimedia.org/wiki/Special:FilePath/Desert_View_Watchtower_2013.jpg?width=1600',credit:'Wikimedia Commons style image link: Desert View Watchtower.',facts:['Desert View Watchtower is at the eastern end of the South Rim.','It was designed by architect Mary Colter.','The tower gives wide views across the canyon and desert.'],hunt:['Find the watchtower.','Look for stonework patterns.','Spot the widest view.','Find a sign mentioning Mary Colter.','Choose the best photo angle.'],activity:{type:'sketch',title:'Tower sketch',prompt:'Sketch the tower shape or design your own desert lookout tower.'},quiz:[['Desert View Watchtower is at the Grand Canyon.','true'],['It is a lighthouse for ocean ships.','false'],['What does the tower give visitors?','Wide views',['Wide views','Underground swimming','Snowboarding lessons']]]},
-{id:'cameron',day:'15 Aug 2026',unlock:'2026-08-15',emoji:'🛍️',title:'Cameron Trading Post',hotel:'The Grand Hotel at the Grand Canyon',loc:'Cameron, Arizona',img:'https://commons.wikimedia.org/wiki/Special:FilePath/Cameron_Trading_Post.jpg?width=1600',credit:'Wikimedia Commons style image link: Cameron Trading Post.',facts:['Cameron Trading Post has served travellers for many decades.','Trading posts became important stops in the Southwest.','It is a useful place for food, gifts and local crafts.'],hunt:['Find the trading post sign.','Spot pottery or woven patterns.','Find one item you would actually buy.','Find a postcard or magnet.','Spot a bridge, river or canyon clue nearby.'],activity:{type:'quick',title:'Souvenir judge',prompt:'Pick the best souvenir you see and explain why it wins.'},quiz:[['Cameron Trading Post is a real traveller stop in Arizona.','true'],['A trading post is where astronauts launch rockets.','false'],['What might you find here?','Gifts and food',['Gifts and food','Penguins','Underground trains']]]},
-{id:'monument',day:'16 Aug 2026',unlock:'2026-08-16',emoji:'🌵',title:'Monument Valley',hotel:'Bluff Dwellings Resort and Spa',loc:'Arizona/Utah border area',img:'https://commons.wikimedia.org/wiki/Special:FilePath/Monument_Valley_2.jpg?width=1600',credit:'Wikimedia Commons image: Monument Valley.',facts:['Monument Valley is famous for its huge sandstone buttes.','It has appeared in many Western films and adverts.','The landscape is on Navajo Nation land.'],hunt:['Find a huge sandstone butte.','Spot a long empty road view.','Find red rock layers.','Take a photo that looks like a film scene.','Find a sign or guide reference to Navajo Nation.'],activity:{type:'sketch',title:'Monument silhouette',prompt:'Sketch the outline of the most dramatic rock formation.'},quiz:[['Monument Valley is famous for sandstone buttes.','true'],['It is best known for its rainforest treehouses.','false'],['What colour is most common in the rocks?','Red/orange',['Red/orange','Bright purple','Ice blue']]]},
-{id:'forrest',day:'16 Aug 2026',unlock:'2026-08-16',emoji:'📸',title:'Forrest Gump Point',hotel:'Bluff Dwellings Resort and Spa',loc:'US-163 near Monument Valley, Utah',img:'https://commons.wikimedia.org/wiki/Special:FilePath/Forrest_Gump_Point_Monument_Valley.jpg?width=1600',credit:'Wikimedia Commons style image link: Forrest Gump Point.',facts:['This viewpoint is linked with the film Forrest Gump.','The road view points towards Monument Valley.','It is a photo stop, but traffic safety matters more than the photo. Annoying, but true.'],hunt:['Find the straight road view.','Spot Monument Valley in the distance.','Take a safe photo from a sensible place.','Find someone doing the classic pose.','Notice how far away the rocks still look.'],activity:{type:'quick',title:'Movie caption',prompt:'Write a caption for the most dramatic road photo here.'},quiz:[['Forrest Gump Point is linked with a film scene.','true'],['You should stand in active traffic for photos.','false'],['What matters most here?','Road safety',['Road safety','Getting likes','Blocking cars']]]},
-{id:'bluff',day:'16 Aug 2026',unlock:'2026-08-16',emoji:'🏨',title:'Bluff Base Camp',hotel:'Bluff Dwellings Resort and Spa',loc:'Bluff, Utah',img:'https://commons.wikimedia.org/wiki/Special:FilePath/Bluff_Utah.jpg?width=1600',credit:'Wikimedia Commons style image link: Bluff, Utah.',facts:['Bluff is a small town in southeastern Utah.','The area has dramatic red-rock scenery.','It is a good overnight base after Monument Valley.'],hunt:['Find a Bluff sign.','Spot red rock near the hotel.','Find the best pool or resort feature.','Choose the best sunset colour.','Look for a local history display.'],activity:{type:'quick',title:'Resort review',prompt:'Rate Bluff Dwellings out of 10 for adventure-hotel vibes.'},quiz:[['Bluff is in Utah.','true'],['Bluff is a London Underground station.','false'],['What kind of scenery is common nearby?','Red rock',['Red rock','Arctic ice','City skyscrapers']]]},
-{id:'horseshoe',day:'17 Aug 2026',unlock:'2026-08-17',emoji:'🌅',title:'Horseshoe Bend',hotel:'Holiday Inn Express and Suites Page',loc:'Page, Arizona',img:'https://commons.wikimedia.org/wiki/Special:FilePath/Horseshoe_Bend_Arizona_USA.jpg?width=1600',credit:'Wikimedia Commons image: Horseshoe Bend.',facts:['Horseshoe Bend is a huge curve in the Colorado River.','The viewpoint is near Page, Arizona.','The drop is enormous, so edge safety is not optional.'],hunt:['Find the horseshoe shape.','Spot the Colorado River below.','Find the safest viewpoint area.','Notice the colour contrast between water and rock.','Take a wide photo.'],activity:{type:'sketch',title:'River curve sketch',prompt:'Sketch the horseshoe shape of the river from the viewpoint.'},quiz:[['Horseshoe Bend is made by a curve in the Colorado River.','true'],['It is a theme park rollercoaster.','false'],['What should you be careful about?','The cliff edge',['The cliff edge','The gift shop carpet','The moon']]]},
-{id:'page',day:'17 Aug 2026',unlock:'2026-08-17',emoji:'🏨',title:'Page Base Camp',hotel:'Holiday Inn Express and Suites Page',loc:'Page, Arizona',img:'https://commons.wikimedia.org/wiki/Special:FilePath/Page_Arizona.jpg?width=1600',credit:'Wikimedia Commons style image link: Page, Arizona.',facts:['Page is close to Lake Powell, Horseshoe Bend and Antelope Canyon.','It was created during the Glen Canyon Dam project era.','It is basically a scenery hub, which is a much better hub than an airport at 3 a.m.'],hunt:['Find a Page sign.','Spot a Lake Powell or dam reference.','Find a canyon tour sign.','Choose the best dinner option nearby.','Find the most desert-looking plant.'],activity:{type:'quick',title:'Tomorrow planner',prompt:'Write the one thing you are most excited for at Antelope Canyon.'},quiz:[['Page is close to Antelope Canyon and Horseshoe Bend.','true'],['Page is in Wales.','false'],['Which thing is nearby?','Lake Powell',['Lake Powell','The Eiffel Tower','Ben Nevis']]]},
-{id:'antelope',day:'18 Aug 2026',unlock:'2026-08-18',emoji:'🧡',title:'Antelope Canyon',hotel:'Mandalay Bay, Las Vegas',loc:'Near Page, Arizona',img:'https://commons.wikimedia.org/wiki/Special:FilePath/Antelope_Canyon_Arizona_USA.jpg?width=1600',credit:'Wikimedia Commons image: Antelope Canyon.',facts:['Antelope Canyon is a slot canyon.','Its curved walls were shaped by water and erosion.','Light beams and orange sandstone make it famous for photos.'],hunt:['Find wave-like rock patterns.','Spot a light beam or bright patch.','Find the narrowest section you walk through.','Take a photo looking upwards.','Notice at least three shades of orange.'],activity:{type:'quick',title:'Canyon photographer',prompt:'Describe your best photo angle in one sentence.'},quiz:[['Antelope Canyon is a slot canyon.','true'],['It was built from orange plastic.','false'],['What shaped the canyon walls over time?','Water and erosion',['Water and erosion','Paint rollers','Giant spoons']]]},
-{id:'stgeorge',day:'18 Aug 2026',unlock:'2026-08-18',emoji:'⛽',title:'St George Stop',hotel:'Mandalay Bay, Las Vegas',loc:'St George, Utah',img:'https://commons.wikimedia.org/wiki/Special:FilePath/St._George_Utah_overlook.jpg?width=1600',credit:'Wikimedia Commons style image link: St George, Utah.',facts:['St George is in southwestern Utah.','It is surrounded by red cliffs and desert scenery.','It is a useful stop on the way towards Las Vegas.'],hunt:['Find a St George sign.','Spot red cliffs.','Find a petrol or rest stop sign.','Choose the best road snack.','Notice how the scenery changes towards Vegas.'],activity:{type:'quick',title:'Snack court',prompt:'Pick the official best road-trip snack of the day and justify your ruling.'},quiz:[['St George is in Utah.','true'],['St George is in the middle of the Atlantic Ocean.','false'],['What is it useful for today?','A road stop',['A road stop','A ski jump','A ferry terminal']]]},
-{id:'vegas',day:'18-20 Aug 2026',unlock:'2026-08-18',emoji:'🎰',title:'Las Vegas Finale',hotel:'Mandalay Bay, Las Vegas',loc:'Las Vegas, Nevada',img:'https://commons.wikimedia.org/wiki/Special:FilePath/Las_Vegas_Strip_2021.jpg?width=1600',credit:'Wikimedia Commons style image link: Las Vegas Strip.',facts:['Las Vegas is famous for huge themed hotels and bright lights.','Mandalay Bay is at the southern end of the Strip.','The Strip is technically in Paradise, Nevada, because apparently even place names enjoy loopholes.'],hunt:['Find the Mandalay Bay sign.','Spot three giant hotel names.','Find the brightest sign.','See something that looks completely over-the-top.','Choose the best view of the Strip.'],activity:{type:'quick',title:'Vegas awards ceremony',prompt:'Give awards for brightest building, weirdest thing and best hotel view.'},quiz:[['Las Vegas is in Nevada.','true'],['Mandalay Bay is a tiny countryside cottage.','false'],['What is Las Vegas famous for?','Lights and big hotels',['Lights and big hotels','Igloos','Ancient Roman aqueducts only']]]}
-];
-let session=null;let progress={completed:{},photos:{},hunt:{},quick:{},sketch:{},dot:{},quiz:{}};
-const $=s=>document.querySelector(s);const loginScreen=$('#login'),site=$('#site'),stopsEl=$('#stops'),rail=$('#rail'),tpl=$('#stopTemplate'),amazonBtn=$('#amazonBtn'),voucher=$('#voucher');
-function key(){return 'route66-progress-'+(session?.username||'guest')}function save(){localStorage.setItem(key(),JSON.stringify(progress))}function load(){try{progress=JSON.parse(localStorage.getItem(key()))||progress}catch{progress={completed:{},photos:{},hunt:{},quick:{},sketch:{},dot:{},quiz:{}}}}
-async function sha256(text){const bytes=new TextEncoder().encode(text);const digest=await crypto.subtle.digest('SHA-256',bytes);return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('')}
-function normalName(name){const n=name.trim().toLowerCase();return Object.keys(USER_HASHES).find(x=>x.toLowerCase()===n)}function today(){const d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate())}function dateObj(s){const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)}
-function unlocked(i){if(session?.test)return true;if(today()<dateObj(STOPS[i].unlock))return false;if(i>0&&!progress.completed[STOPS[i-1].id])return false;return true}function lockReason(i){if(today()<dateObj(STOPS[i].unlock))return 'Opens on '+STOPS[i].day+'.';if(i>0&&!progress.completed[STOPS[i-1].id])return 'Complete the previous stop first.';return ''}
-function allDone(){return STOPS.every(s=>progress.completed[s.id])}function pct(){return Math.round((STOPS.filter(s=>progress.completed[s.id]).length/STOPS.length)*100)}
-function render(){stopsEl.innerHTML='';rail.innerHTML='';$('#who').textContent=session.test?'test mode':' '+session.username;$('#doneCount').textContent=STOPS.filter(s=>progress.completed[s.id]).length;$('#totalCount').textContent=STOPS.length;$('#percentCount').textContent=pct()+'%';STOPS.forEach((stop,i)=>{rail.appendChild(railItem(stop,i));stopsEl.appendChild(stopCard(stop,i))});renderReward();observe()}
-function railItem(stop,i){const a=document.createElement('a');a.href='#'+stop.id;a.textContent=progress.completed[stop.id]?'✓':stop.emoji;a.title=stop.title;a.className=unlocked(i)?(progress.completed[stop.id]?'done':''):'locked';return a}
-function stopCard(stop,i){const node=tpl.content.cloneNode(true);const art=node.querySelector('.stop');art.id=stop.id;if(!unlocked(i))art.classList.add('locked-card');node.querySelector('.stop-img').src=stop.img;node.querySelector('.stop-img').alt=stop.title;node.querySelector('.locked span').textContent=lockReason(i);node.querySelector('.kicker').textContent=stop.day+' • '+stop.emoji;node.querySelector('h2').textContent=stop.title;node.querySelector('.subtitle').textContent=stop.loc;node.querySelector('.chips').innerHTML=`<span class="chip">${stop.hotel}</span><span class="chip">${stop.loc}</span><span class="chip">${stop.day}</span>`;node.querySelector('.facts').innerHTML=stop.facts.map(f=>`<li>${f}</li>`).join('');node.querySelector('.credit').textContent=stop.credit;renderProof(node,stop);renderHunt(node,stop);renderActivity(node,stop);renderQuiz(node,stop);node.querySelector('.complete').addEventListener('click',()=>completeStop(stop,i));node.querySelector('.completeStatus').textContent=progress.completed[stop.id]?'✓ Completed':'';return node}
-function renderProof(node,stop){const input=node.querySelector('.photo'),status=node.querySelector('.proofStatus');const saved=progress.photos[stop.id];status.textContent=saved?'✓ Proof selected: '+saved.name:'';input.addEventListener('change',e=>{const file=e.target.files[0];if(!file)return;progress.photos[stop.id]={name:file.name,time:new Date().toLocaleString()};status.textContent='✓ Proof selected: '+file.name;save()})}
-function renderHunt(node,stop){const root=node.querySelector('.hunt');const data=progress.hunt[stop.id]||{};stop.hunt.forEach((item,idx)=>{const lab=document.createElement('label');lab.innerHTML=`<input type="checkbox" ${data[idx]?'checked':''}><span>${item}</span>`;lab.querySelector('input').addEventListener('change',e=>{if(!progress.hunt[stop.id])progress.hunt[stop.id]={};progress.hunt[stop.id][idx]=e.target.checked;save()});root.appendChild(lab)})}
-function renderActivity(node,stop){node.querySelector('.activity h3').textContent=stop.activity.title;node.querySelector('.activity p').textContent=stop.activity.prompt;const slot=node.querySelector('.activitySlot');if(stop.activity.type==='quick'){const t=document.createElement('textarea');t.placeholder='Write your answer here...';t.value=progress.quick[stop.id]||'';t.addEventListener('input',()=>{progress.quick[stop.id]=t.value;save()});slot.appendChild(t)}if(stop.activity.type==='sketch'){const wrap=document.createElement('div');wrap.className='sketch-wrap';wrap.innerHTML='<canvas class="sketch" width="900" height="520"></canvas><button class="secondary" type="button">Clear sketch</button>';slot.appendChild(wrap);setupSketch(wrap.querySelector('canvas'),wrap.querySelector('button'),stop.id)}if(stop.activity.type==='dot'){const wrap=document.createElement('div');wrap.className='sketch-wrap';wrap.innerHTML='<canvas class="dot" width="900" height="520"></canvas><p class="proofStatus"></p>';slot.appendChild(wrap);setupDot(wrap.querySelector('canvas'),wrap.querySelector('p'),stop.id)}}
-function renderQuiz(node,stop){const root=node.querySelector('.quiz'),res=node.querySelector('.quizResult');const saved=progress.quiz[stop.id]||{answers:{},checked:false,correct:false};stop.quiz.forEach((q,idx)=>{const block=document.createElement('div');block.className='question';const opts=q[2]||['true','false'];block.innerHTML=`<p>${idx+1}. ${q[0]}</p>`;const op=document.createElement('div');op.className='options';opts.forEach(v=>{const label=document.createElement('label');label.className='option';const shown=v==='true'?'True':v==='false'?'False':v;label.innerHTML=`<input type="radio" name="${stop.id}-${idx}" value="${v}" ${saved.answers[idx]===v?'checked':''}><span>${shown}</span>`;label.querySelector('input').addEventListener('change',e=>{if(!progress.quiz[stop.id])progress.quiz[stop.id]={answers:{},checked:false,correct:false};progress.quiz[stop.id].answers[idx]=e.target.value;progress.quiz[stop.id].checked=false;progress.quiz[stop.id].correct=false;save()});op.appendChild(label)});block.appendChild(op);root.appendChild(block)});if(saved.checked)res.textContent=saved.correct?'✓ Quiz correct.':'Not correct yet.';node.querySelector('.check').addEventListener('click',()=>checkQuiz(stop,res,true))}
-function checkQuiz(stop,res,punish){const q=progress.quiz[stop.id]||{answers:{}};if(stop.quiz.some((_,i)=>q.answers[i]===undefined)){res.textContent='Answer every question first.';return false}const ok=stop.quiz.every((x,i)=>q.answers[i]===x[1]);progress.quiz[stop.id]={answers:q.answers,checked:true,correct:ok};save();if(ok){res.textContent='✓ Quiz correct.';return true}if(session.test||!punish){res.textContent='Not quite. Try again.';return false}res.textContent='Wrong answer. Back to the beginning...';setTimeout(()=>reset('Wrong answer — back to the start.'),450);return false}
-function validate(stop,i){if(!unlocked(i))return lockReason(i);if(!session.test&&!progress.photos[stop.id])return 'Upload arrival photo proof first.';const h=progress.hunt[stop.id]||{};if(!stop.hunt.every((_,x)=>h[x]))return 'Tick every scavenger hunt item first.';if(stop.activity.type==='quick'&&!(progress.quick[stop.id]||'').trim())return 'Fill in the mini activity first.';if(stop.activity.type==='sketch'&&!progress.sketch[stop.id])return 'Do the sketch first.';if(stop.activity.type==='dot'&&!progress.dot[stop.id]?.complete)return 'Finish the dot-to-dot first.';if(!progress.quiz[stop.id]?.checked)return 'Check the quiz answers first.';if(!progress.quiz[stop.id]?.correct)return 'Quiz must be correct first.';return ''}
-function completeStop(stop,i){const art=document.getElementById(stop.id),msg=art.querySelector('.completeStatus'),res=art.querySelector('.quizResult');if(!progress.quiz[stop.id]?.checked)checkQuiz(stop,res,true);const problem=validate(stop,i);if(problem){msg.textContent=problem;return}progress.completed[stop.id]=true;save();render();setTimeout(()=>{const next=STOPS[i+1];(next?document.getElementById(next.id):$('#reward'))?.scrollIntoView({behavior:'smooth',block:'start'})},150)}
-function reset(message='Progress reset.'){progress={completed:{},photos:{},hunt:{},quick:{},sketch:{},dot:{},quiz:{}};save();render();alert(message);$('.hero')?.scrollIntoView({behavior:'smooth'})}
-function setupSketch(canvas,clear,id){const ctx=canvas.getContext('2d');let drawing=false,drew=!!progress.sketch[id];function bg(){ctx.fillStyle='#fff8ea';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.strokeStyle='rgba(40,20,0,.18)';ctx.lineWidth=2;for(let x=40;x<canvas.width;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke()}for(let y=40;y<canvas.height;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke()}ctx.fillStyle='rgba(50,25,0,.42)';ctx.font='bold 26px system-ui';ctx.fillText('Sketch box',32,42)}function loadSketch(){if(progress.sketch[id]){const im=new Image();im.onload=()=>ctx.drawImage(im,0,0);im.src=progress.sketch[id]}else bg()}function pos(e){const r=canvas.getBoundingClientRect(),p=e.touches?e.touches[0]:e;return{x:(p.clientX-r.left)*canvas.width/r.width,y:(p.clientY-r.top)*canvas.height/r.height}}function start(e){e.preventDefault();drawing=true;const p=pos(e);ctx.beginPath();ctx.moveTo(p.x,p.y)}function move(e){if(!drawing)return;e.preventDefault();const p=pos(e);ctx.lineWidth=7;ctx.lineCap='round';ctx.strokeStyle='#24160c';ctx.lineTo(p.x,p.y);ctx.stroke();drew=true;progress.sketch[id]=canvas.toDataURL('image/png');save()}function end(){drawing=false}canvas.addEventListener('pointerdown',start);canvas.addEventListener('pointermove',move);window.addEventListener('pointerup',end);canvas.addEventListener('touchstart',start,{passive:false});canvas.addEventListener('touchmove',move,{passive:false});window.addEventListener('touchend',end);clear.addEventListener('click',()=>{delete progress.sketch[id];drew=false;save();bg()});loadSketch()}
-function setupDot(canvas,status,id){const ctx=canvas.getContext('2d');const pts=[[180,330],[250,240],[340,205],[430,238],[520,180],[610,245],[720,270],[625,310],[540,300],[470,375],[400,300],[310,310]];let cur=progress.dot[id]?.current||0,complete=!!progress.dot[id]?.complete;function draw(){ctx.clearRect(0,0,900,520);ctx.fillStyle='#fff8ea';ctx.fillRect(0,0,900,520);ctx.fillStyle='rgba(214,118,42,.16)';ctx.beginPath();ctx.moveTo(0,420);ctx.bezierCurveTo(210,360,290,470,470,405);ctx.bezierCurveTo(640,335,760,410,900,330);ctx.lineTo(900,520);ctx.lineTo(0,520);ctx.fill();ctx.fillStyle='rgba(80,55,30,.7)';ctx.font='bold 24px system-ui';ctx.fillText('Click 1 to 12',32,42);ctx.lineWidth=5;ctx.strokeStyle='#d76f1f';ctx.beginPath();for(let i=0;i<cur;i++){const [x,y]=pts[i];if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)}if(complete)ctx.closePath();ctx.stroke();pts.forEach(([x,y],i)=>{ctx.beginPath();ctx.fillStyle=i<cur?'#80b918':'#222';ctx.arc(x,y,17,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 18px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(String(i+1),x,y+1)});ctx.textAlign='start';status.textContent=complete?'✓ Dot-to-dot completed.':'Next dot: '+(cur+1)}canvas.addEventListener('click',e=>{if(complete)return;const r=canvas.getBoundingClientRect();const x=(e.clientX-r.left)*900/r.width,y=(e.clientY-r.top)*520/r.height;const [px,py]=pts[cur];if(Math.hypot(x-px,y-py)<38){cur++;complete=cur>=pts.length;progress.dot[id]={current:cur,complete};save();draw()}else status.textContent='Wrong dot. Look for number '+(cur+1)});draw()}
-function renderReward(){const done=allDone();amazonBtn.disabled=!done;$('#rewardText').textContent=done?'You completed the whole route. Click the logo.':'Complete every stop correctly to unlock the final message.';$('#reward').classList.toggle('lockedReward',!done)}function observe(){const ob=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('show')}),{threshold:.16});document.querySelectorAll('.reveal').forEach(x=>ob.observe(x))}
-async function doLogin(name,pass){if(name.trim().toLowerCase()==='test'){session={username:'test',test:true};sessionStorage.setItem('r66-session',JSON.stringify(session));load();loginScreen.classList.add('hidden');site.classList.remove('hidden');render();return true}const user=normalName(name);if(!user)return false;const hashed=await sha256(pass);if(hashed!==USER_HASHES[user])return false;session={username:user,test:false};sessionStorage.setItem('r66-session',JSON.stringify(session));load();loginScreen.classList.add('hidden');site.classList.remove('hidden');render();return true}
-$('#loginForm').addEventListener('submit',async e=>{e.preventDefault();$('#loginError').textContent='';const ok=await doLogin($('#username').value,$('#password').value);if(!ok)$('#loginError').textContent='Wrong username or password.'});$('#logoutBtn').addEventListener('click',()=>{sessionStorage.removeItem('r66-session');site.classList.add('hidden');loginScreen.classList.remove('hidden')});$('#resetBtn').addEventListener('click',()=>{if(confirm('Reset all progress for this user?'))reset('Progress reset.')});$('#printBtn').addEventListener('click',()=>window.print());amazonBtn.addEventListener('click',()=>{if(!amazonBtn.disabled)voucher.classList.remove('hidden')});
-try{const old=JSON.parse(sessionStorage.getItem('r66-session')||'null');if(old?.username){session=old;load();loginScreen.classList.add('hidden');site.classList.remove('hidden');render()}}catch{}
+const ACCOUNTS={
+  Jacob:{role:'player',hash:'03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4'},
+  Lily:{role:'player',hash:'fe2592b42a727e977f055947385b709cc82b16b9a87f88c6abf3900d65d0cdc3'},
+  Hannah:{role:'player',hash:'9975baa75e1603273cbd3d94746a0442e22d5dc0268750dd45229f343f53fe19'},
+  Ethan:{role:'player',hash:'08f61ac43fc9a9d5bd3d41f6dc2976ad27d8d5d8422e2ac87c12b98364a331fe'},
+  admin:{role:'admin',hash:'7f3d56bb44da1a1f5239ac9db712488db90f135d999290ed9104eba8691096e2'}
+};
+const CONFIG={
+  sheetEndpoint:'',
+  sheetUrl:''
+};
+
+const SAFE_IMAGE_OVERRIDES={
+  lax:'https://picsum.photos/seed/route66-lax/1200/800',
+  barstow:'https://picsum.photos/seed/route66-barstow/1200/800',
+  calico:'https://picsum.photos/seed/route66-calico/1200/800',
+  bagdad:'https://picsum.photos/seed/route66-bagdad-cafe/1200/800',
+  roys:'https://picsum.photos/seed/route66-roys/1200/800',
+  needles:'https://picsum.photos/seed/route66-needles/1200/800',
+  oatman:'https://picsum.photos/seed/route66-oatman/1200/800',
+  kingman:'https://picsum.photos/seed/route66-kingman/1200/800',
+  peach:'https://picsum.photos/seed/route66-peach-springs/1200/800',
+  seligman:'https://picsum.photos/seed/route66-seligman/1200/800',
+  meteor:'https://picsum.photos/seed/route66-meteor-crater/1200/800',
+  bearizona:'https://picsum.photos/seed/route66-bearizona/1200/800',
+  grand:'https://picsum.photos/seed/route66-grand-canyon/1200/800',
+  desertview:'https://picsum.photos/seed/route66-desert-view/1200/800',
+  cameron:'https://picsum.photos/seed/route66-cameron-trading-post/1200/800',
+  monument:'https://picsum.photos/seed/route66-monument-valley/1200/800',
+  forrest:'https://picsum.photos/seed/route66-forrest-gump-point/1200/800',
+  bluff:'https://picsum.photos/seed/route66-bluff-utah/1200/800',
+  horseshoe:'https://picsum.photos/seed/route66-horseshoe-bend/1200/800',
+  page:'https://picsum.photos/seed/route66-page-arizona/1200/800',
+  antelope:'https://picsum.photos/seed/route66-antelope-canyon/1200/800',
+  stgeorge:'https://picsum.photos/seed/route66-st-george/1200/800',
+  vegas:'https://picsum.photos/seed/route66-las-vegas/1200/800'
+};
+
+const SCORE_PER_STOP=100;
+const PLAYER_NAMES=Object.keys(ACCOUNTS).filter(name=>ACCOUNTS[name].role==='player');
+const STORAGE={
+  session:'route66-session-v2',
+  shared:'route66-shared-v2',
+  progressPrefix:'route66-progress-v2-',
+  legacyPrefix:'route66-progress-'
+};
+
+let session=null;
+let progress=freshProgress();
+let shared=freshShared();
+let observer=null;
+
+const $=selector=>document.querySelector(selector);
+const els={
+  login:$('#login'),
+  site:$('#site'),
+  loginForm:$('#loginForm'),
+  username:$('#username'),
+  password:$('#password'),
+  loginError:$('#loginError'),
+  who:$('#who'),
+  syncStatus:$('#syncStatus'),
+  sheetStatus:$('#sheetStatus'),
+  sheetLink:$('#sheetLink'),
+  doneCount:$('#doneCount'),
+  doneLabel:$('#doneLabel'),
+  pointsCount:$('#pointsCount'),
+  pendingCount:$('#pendingCount'),
+  routeNav:$('#routeNav'),
+  stops:$('#stops'),
+  stopTemplate:$('#stopTemplate'),
+  leaderboardRows:$('#leaderboardRows'),
+  leaderboardEmpty:$('#leaderboardEmpty'),
+  adminPanel:$('#adminPanel'),
+  adminRows:$('#adminRows'),
+  adminEmpty:$('#adminEmpty'),
+  amazonBtn:$('#amazonBtn'),
+  reward:$('#reward'),
+  rewardText:$('#rewardText'),
+  voucher:$('#voucher'),
+  syncBtn:$('#syncBtn'),
+  printBtn:$('#printBtn'),
+  resetBtn:$('#resetBtn'),
+  logoutBtn:$('#logoutBtn'),
+  exportCsvBtn:$('#exportCsvBtn'),
+  adminRefreshBtn:$('#adminRefreshBtn')
+};
+
+function freshProgress(){
+  return {completed:{},submitted:{},photos:{},hunt:{},quick:{},sketch:{},dot:{},quiz:{},points:{}};
+}
+
+function freshShared(){
+  return {submissions:[],updatedAt:null};
+}
+
+function readJson(key,fallback=null){
+  try{
+    const value=localStorage.getItem(key);
+    return value?JSON.parse(value):fallback;
+  }catch{
+    return fallback;
+  }
+}
+
+function writeJson(key,value){
+  localStorage.setItem(key,JSON.stringify(value));
+}
+
+function progressKey(username=session?.username||'guest'){
+  return STORAGE.progressPrefix+username;
+}
+
+function mergeProgress(saved){
+  const merged=freshProgress();
+  if(!saved||typeof saved!=='object')return merged;
+  Object.keys(merged).forEach(key=>{
+    merged[key]=saved[key]&&typeof saved[key]==='object'?saved[key]:merged[key];
+  });
+  if(saved.completed){
+    merged.completed={...saved.completed};
+    Object.keys(saved.completed).forEach(stopId=>{
+      if(saved.completed[stopId]&&!merged.points[stopId])merged.points[stopId]=SCORE_PER_STOP;
+    });
+  }
+  return merged;
+}
+
+function loadProgress(){
+  const saved=readJson(progressKey(),null)??readJson(STORAGE.legacyPrefix+(session?.username||'guest'),null);
+  progress=mergeProgress(saved);
+}
+
+function saveProgress(){
+  if(session?.role!=='admin')writeJson(progressKey(),progress);
+}
+
+function loadShared(){
+  shared=normaliseShared(readJson(STORAGE.shared,freshShared()));
+}
+
+function saveShared(){
+  shared.updatedAt=new Date().toISOString();
+  writeJson(STORAGE.shared,shared);
+}
+
+async function sha256(text){
+  const bytes=new TextEncoder().encode(text);
+  const digest=await crypto.subtle.digest('SHA-256',bytes);
+  return [...new Uint8Array(digest)].map(byte=>byte.toString(16).padStart(2,'0')).join('');
+}
+
+function normalName(name){
+  const clean=name.trim().toLowerCase();
+  return Object.keys(ACCOUNTS).find(account=>account.toLowerCase()===clean);
+}
+
+function isAdmin(){
+  return session?.role==='admin';
+}
+
+function today(){
+  const date=new Date();
+  return new Date(date.getFullYear(),date.getMonth(),date.getDate());
+}
+
+function dateObj(value){
+  const [year,month,day]=value.split('-').map(Number);
+  return new Date(year,month-1,day);
+}
+
+function stopById(stopId){
+  return STOPS.find(stop=>stop.id===stopId);
+}
+
+function latestSubmission(username,stopId){
+  return shared.submissions
+    .filter(item=>item.username===username&&item.stopId===stopId)
+    .sort((a,b)=>timestamp(b.updatedAt||b.submittedAt)-timestamp(a.updatedAt||a.submittedAt))[0]||null;
+}
+
+function timestamp(value){
+  const time=Date.parse(value||'');
+  return Number.isFinite(time)?time:0;
+}
+
+function statusForStop(stopId){
+  if(session?.test)return 'approved';
+  if(isAdmin())return 'admin';
+  const latest=latestSubmission(session?.username,stopId);
+  if(latest?.status==='approved'||progress.completed[stopId])return 'approved';
+  if(latest?.status==='pending'||progress.submitted[stopId]?.status==='pending')return 'pending';
+  if(latest?.status==='rejected'||progress.submitted[stopId]?.status==='rejected')return 'rejected';
+  return 'ready';
+}
+
+function unlocked(index){
+  if(session?.test||isAdmin())return true;
+  if(today()<dateObj(STOPS[index].unlock))return false;
+  if(index===0)return true;
+  return statusForStop(STOPS[index-1].id)==='approved';
+}
+
+function lockReason(index){
+  if(today()<dateObj(STOPS[index].unlock))return 'Opens on '+STOPS[index].day+'.';
+  if(index>0){
+    const previous=STOPS[index-1];
+    const status=statusForStop(previous.id);
+    if(status==='pending')return previous.title+' is waiting for admin approval.';
+    if(status==='rejected')return previous.title+' needs to be resubmitted.';
+    return 'Get admin approval for '+previous.title+' first.';
+  }
+  return '';
+}
+
+function applySharedToProgress(){
+  if(!session||session.test||isAdmin())return;
+  STOPS.forEach(stop=>{
+    const latest=latestSubmission(session.username,stop.id);
+    if(!latest)return;
+    progress.submitted[stop.id]={
+      id:latest.id,
+      status:latest.status,
+      score:scoreWithBonus(latest),
+      submittedAt:latest.submittedAt,
+      updatedAt:latest.updatedAt
+    };
+    if(latest.status==='approved'){
+      progress.completed[stop.id]=true;
+      progress.points[stop.id]=scoreWithBonus(latest);
+    }
+    if(latest.status==='rejected'){
+      delete progress.completed[stop.id];
+      delete progress.points[stop.id];
+    }
+  });
+  saveProgress();
+}
+
+function renderApp(){
+  if(!session)return;
+  applySharedToProgress();
+  document.body.dataset.role=session.role;
+  els.who.textContent=session.test?'test mode':isAdmin()?'admin':' '+session.username;
+  els.adminPanel.classList.toggle('hidden',!isAdmin());
+  renderStats();
+  renderSheetStatus();
+  renderRouteNav();
+  renderLeaderboard();
+  renderAdminPanel();
+  renderStops();
+  renderReward();
+  revealOnScroll();
+}
+
+function renderStats(){
+  if(isAdmin()){
+    const pending=shared.submissions.filter(item=>item.status==='pending').length;
+    const approved=shared.submissions.filter(item=>item.status==='approved').length;
+    els.doneCount.textContent=approved;
+    els.doneLabel.textContent='approved';
+    els.pointsCount.textContent=buildLeaderboard().reduce((total,row)=>total+row.points,0);
+    els.pendingCount.textContent=pending;
+    return;
+  }
+  const approvedStops=STOPS.filter(stop=>statusForStop(stop.id)==='approved').length;
+  const pendingStops=STOPS.filter(stop=>statusForStop(stop.id)==='pending').length;
+  els.doneCount.textContent=approvedStops;
+  els.doneLabel.textContent='approved';
+  els.pointsCount.textContent=playerPoints(session.username);
+  els.pendingCount.textContent=pendingStops;
+}
+
+function renderSheetStatus(){
+  const connected=Boolean(CONFIG.sheetEndpoint);
+  const label=connected?'Sheet sync connected.':'Local scoreboard mode.';
+  els.syncStatus.textContent=label;
+  if(els.sheetStatus)els.sheetStatus.textContent=label;
+  if(els.sheetLink){
+    els.sheetLink.classList.toggle('hidden',!CONFIG.sheetUrl);
+    els.sheetLink.href=CONFIG.sheetUrl||'#';
+  }
+}
+
+function renderRouteNav(){
+  els.routeNav.innerHTML='';
+  STOPS.forEach((stop,index)=>{
+    const link=document.createElement('a');
+    link.href='#'+stop.id;
+    link.className='route-step '+statusForStop(stop.id);
+    if(!unlocked(index))link.classList.add('locked');
+    link.innerHTML='<span>'+(index+1)+'</span><strong></strong>';
+    link.querySelector('strong').textContent=stop.title;
+    els.routeNav.appendChild(link);
+  });
+}
+
+function renderLeaderboard(){
+  const rows=buildLeaderboard();
+  els.leaderboardRows.innerHTML='';
+  rows.forEach((row,index)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td></td><td></td><td></td><td></td><td></td>';
+    tr.children[0].textContent=String(index+1);
+    tr.children[1].textContent=row.username;
+    tr.children[2].textContent=String(row.points);
+    tr.children[3].textContent=String(row.stops);
+    tr.children[4].textContent=row.lastApproved?formatDate(row.lastApproved):'-';
+    els.leaderboardRows.appendChild(tr);
+  });
+  els.leaderboardEmpty.classList.toggle('hidden',rows.some(row=>row.points>0));
+}
+
+function buildLeaderboard(){
+  const scores=new Map();
+  PLAYER_NAMES.forEach(name=>scores.set(name,{username:name,points:0,stops:0,lastApproved:''}));
+  shared.submissions.forEach(item=>{
+    if(item.status!=='approved')return;
+    const row=scores.get(item.username)||{username:item.username,points:0,stops:0,lastApproved:''};
+    row.points+=scoreWithBonus(item);
+    row.stops+=1;
+    if(timestamp(item.approvedAt||item.updatedAt)>timestamp(row.lastApproved))row.lastApproved=item.approvedAt||item.updatedAt;
+    scores.set(item.username,row);
+  });
+  return [...scores.values()].sort((a,b)=>b.points-a.points||b.stops-a.stops||a.username.localeCompare(b.username));
+}
+
+function playerPoints(username){
+  const sharedTotal=shared.submissions
+    .filter(item=>item.username===username&&item.status==='approved')
+    .reduce((total,item)=>total+scoreWithBonus(item),0);
+  if(sharedTotal)return sharedTotal;
+  return Object.values(progress.points).reduce((total,value)=>total+Number(value||0),0);
+}
+
+function renderAdminPanel(){
+  if(!isAdmin())return;
+  const pending=shared.submissions.filter(item=>item.status==='pending');
+  els.adminRows.innerHTML='';
+  pending.forEach(item=>{
+    const stop=stopById(item.stopId);
+    const row=document.createElement('article');
+    row.className='admin-row';
+    row.innerHTML=[
+      '<div class="admin-main">',
+      '<div><strong class="admin-title"></strong><span class="admin-meta"></span></div>',
+      '<p class="admin-proof"></p>',
+      '<div class="admin-photo"></div>',
+      '</div>',
+      '<div class="admin-controls">',
+      '<label>Bonus <input class="bonus-input" type="number" min="0" max="25" step="5" value="0"></label>',
+      '<button class="btn btn-primary approve-btn" type="button">Approve</button>',
+      '<button class="btn btn-danger reject-btn" type="button">Reject</button>',
+      '</div>'
+    ].join('');
+    row.querySelector('.admin-title').textContent=item.username+' - '+(stop?.title||item.stopTitle||item.stopId);
+    row.querySelector('.admin-meta').textContent='Submitted '+formatDate(item.submittedAt)+' - '+SCORE_PER_STOP+' base points';
+    row.querySelector('.admin-proof').textContent=item.proofName?'Photo: '+item.proofName:'No photo name recorded';
+    const photo=row.querySelector('.admin-photo');
+    if(item.proofImage){
+      const img=document.createElement('img');
+      img.src=item.proofImage;
+      img.alt=item.username+' proof for '+(stop?.title||item.stopTitle||item.stopId);
+      photo.appendChild(img);
+    }
+    row.querySelector('.approve-btn').addEventListener('click',()=>approveSubmission(item.id,row.querySelector('.bonus-input').value));
+    row.querySelector('.reject-btn').addEventListener('click',()=>rejectSubmission(item.id));
+    els.adminRows.appendChild(row);
+  });
+  els.adminEmpty.classList.toggle('hidden',pending.length>0);
+}
+
+function renderStops(){
+  els.stops.innerHTML='';
+  STOPS.forEach((stop,index)=>els.stops.appendChild(stopCard(stop,index)));
+}
+
+function stopCard(stop,index){
+  const node=els.stopTemplate.content.cloneNode(true);
+  const article=node.querySelector('.stop-card');
+  const locked=!unlocked(index);
+  const status=statusForStop(stop.id);
+  article.id=stop.id;
+  article.classList.toggle('locked-card',locked);
+  article.classList.toggle('admin-reference',isAdmin());
+  node.querySelector('.kicker').textContent=stop.day+' / stop '+(index+1)+' of '+STOPS.length;
+  node.querySelector('h2').textContent=stop.title;
+  node.querySelector('.subtitle').textContent=stop.loc;
+  node.querySelector('.chips').innerHTML='<span>'+escapeHtml(stop.hotel)+'</span><span>'+escapeHtml(stop.loc)+'</span><span>'+escapeHtml(stop.day)+'</span>';
+  node.querySelector('.facts').innerHTML=stop.facts.map(fact=>'<li>'+escapeHtml(fact)+'</li>').join('');
+  node.querySelector('.credit').textContent=stop.credit;
+  renderStatus(node,stop,index,status,locked);
+  renderStopImage(node,stop);
+  renderProof(node,stop);
+  renderHunt(node,stop);
+  renderActivity(node,stop);
+  renderQuiz(node,stop);
+  const submit=node.querySelector('.submit-stop');
+  submit.addEventListener('click',()=>submitStop(stop,index));
+  if(isAdmin()){
+    submit.classList.add('hidden');
+    disableStopInputs(node);
+  }
+  return node;
+}
+
+function renderStatus(node,stop,index,status,locked){
+  const pill=node.querySelector('.status-pill');
+  const approval=node.querySelector('.approval-box');
+  const title=node.querySelector('.approval-title');
+  const copy=node.querySelector('.approval-copy');
+  const button=node.querySelector('.submit-stop');
+  const complete=node.querySelector('.completeStatus');
+  const lock=node.querySelector('.lock-overlay span');
+  const labels={
+    approved:['Approved','Next stop unlocked.'],
+    pending:['Waiting for admin','This stop is in the approval queue.'],
+    rejected:['Needs resubmission','Check the proof and send it again.'],
+    ready:['Ready','Worth '+SCORE_PER_STOP+' points when approved.'],
+    admin:['Reference','Admin approval is handled above.']
+  };
+  const [label,description]=labels[status]||labels.ready;
+  pill.textContent=locked?'Locked':label;
+  pill.className='status-pill '+(locked?'locked':status);
+  title.textContent=locked?'Locked':label;
+  copy.textContent=locked?lockReason(index):description;
+  lock.textContent=lockReason(index);
+  approval.className='approval-box '+(locked?'locked':status);
+  complete.textContent=status==='approved'?'Approved for '+SCORE_PER_STOP+' points.':status==='pending'?'Submitted.':status==='rejected'?'Rejected. Resubmit when ready.':'';
+  button.disabled=locked||status==='approved'||status==='pending';
+  button.textContent=session?.test?'Complete in test mode':status==='rejected'?'Resubmit for approval':'Submit for approval';
+}
+
+function renderStopImage(node,stop){
+  const img=node.querySelector('.stop-img');
+  const fallback=node.querySelector('.image-fallback');
+  fallback.textContent=stop.title;
+  img.alt=stop.title;
+  img.referrerPolicy='no-referrer';
+  img.addEventListener('error',()=>{
+    img.classList.add('hidden');
+    fallback.classList.add('show');
+  });
+  img.addEventListener('load',()=>fallback.classList.remove('show'));
+  img.src=imageForStop(stop);
+}
+
+function imageForStop(stop){
+  return SAFE_IMAGE_OVERRIDES[stop.id]||stop.img;
+}
+
+function renderProof(node,stop){
+  const input=node.querySelector('.photo');
+  const status=node.querySelector('.proofStatus');
+  const preview=node.querySelector('.proof-preview');
+  const saved=progress.photos[stop.id];
+  if(saved?.dataUrl){
+    preview.src=saved.dataUrl;
+    preview.classList.remove('hidden');
+  }
+  status.textContent=saved?'Saved photo: '+saved.name:'';
+  input.addEventListener('change',async event=>{
+    const file=event.target.files[0];
+    if(!file)return;
+    status.textContent='Saving photo preview...';
+    try{
+      const dataUrl=await imageToThumb(file);
+      progress.photos[stop.id]={name:file.name,type:file.type,size:file.size,time:new Date().toISOString(),dataUrl};
+      preview.src=dataUrl;
+      preview.classList.remove('hidden');
+      status.textContent='Saved photo: '+file.name;
+      saveProgress();
+    }catch{
+      status.textContent='Could not read that image.';
+    }
+  });
+}
+
+function renderHunt(node,stop){
+  const root=node.querySelector('.hunt');
+  const saved=progress.hunt[stop.id]||{};
+  stop.hunt.forEach((item,index)=>{
+    const label=document.createElement('label');
+    const input=document.createElement('input');
+    const span=document.createElement('span');
+    input.type='checkbox';
+    input.checked=Boolean(saved[index]);
+    span.textContent=item;
+    input.addEventListener('change',()=>{
+      progress.hunt[stop.id]={...(progress.hunt[stop.id]||{}),[index]:input.checked};
+      saveProgress();
+    });
+    label.append(input,span);
+    root.appendChild(label);
+  });
+}
+
+function renderActivity(node,stop){
+  node.querySelector('.activity-block h3').textContent=stop.activity.title;
+  node.querySelector('.activity-block p').textContent=stop.activity.prompt;
+  const slot=node.querySelector('.activitySlot');
+  if(stop.activity.type==='quick'){
+    const textarea=document.createElement('textarea');
+    textarea.placeholder='Write your answer here...';
+    textarea.value=progress.quick[stop.id]||'';
+    textarea.addEventListener('input',()=>{
+      progress.quick[stop.id]=textarea.value;
+      saveProgress();
+    });
+    slot.appendChild(textarea);
+  }
+  if(stop.activity.type==='sketch'){
+    const wrap=document.createElement('div');
+    wrap.className='sketch-wrap';
+    wrap.innerHTML='<canvas class="sketch" width="900" height="520"></canvas><button class="btn btn-secondary" type="button">Clear sketch</button>';
+    slot.appendChild(wrap);
+    setupSketch(wrap.querySelector('canvas'),wrap.querySelector('button'),stop.id);
+  }
+  if(stop.activity.type==='dot'){
+    const wrap=document.createElement('div');
+    wrap.className='sketch-wrap';
+    wrap.innerHTML='<canvas class="dot" width="900" height="520"></canvas><p class="proofStatus"></p>';
+    slot.appendChild(wrap);
+    setupDot(wrap.querySelector('canvas'),wrap.querySelector('p'),stop.id);
+  }
+}
+
+function renderQuiz(node,stop){
+  const root=node.querySelector('.quiz');
+  const result=node.querySelector('.quizResult');
+  const saved=progress.quiz[stop.id]||{answers:{},checked:false,correct:false};
+  stop.quiz.forEach((question,index)=>{
+    const block=document.createElement('div');
+    block.className='question';
+    const prompt=document.createElement('p');
+    prompt.textContent=(index+1)+'. '+question[0];
+    const options=document.createElement('div');
+    options.className='options';
+    (question[2]||['true','false']).forEach(value=>{
+      const label=document.createElement('label');
+      const input=document.createElement('input');
+      const span=document.createElement('span');
+      input.type='radio';
+      input.name=stop.id+'-'+index;
+      input.value=value;
+      input.checked=saved.answers[index]===value;
+      span.textContent=value==='true'?'True':value==='false'?'False':value;
+      input.addEventListener('change',()=>{
+        progress.quiz[stop.id]=progress.quiz[stop.id]||{answers:{},checked:false,correct:false};
+        progress.quiz[stop.id].answers[index]=value;
+        progress.quiz[stop.id].checked=false;
+        progress.quiz[stop.id].correct=false;
+        saveProgress();
+      });
+      label.append(input,span);
+      options.appendChild(label);
+    });
+    block.append(prompt,options);
+    root.appendChild(block);
+  });
+  if(saved.checked)result.textContent=saved.correct?'Quiz correct.':'Not correct yet.';
+  node.querySelector('.check').addEventListener('click',()=>checkQuiz(stop,result,true));
+}
+
+function checkQuiz(stop,result,punish){
+  const current=progress.quiz[stop.id]||{answers:{}};
+  if(stop.quiz.some((_,index)=>current.answers[index]===undefined)){
+    result.textContent='Answer every question first.';
+    return false;
+  }
+  const correct=stop.quiz.every((question,index)=>current.answers[index]===question[1]);
+  progress.quiz[stop.id]={answers:current.answers,checked:true,correct};
+  saveProgress();
+  if(correct){
+    result.textContent='Quiz correct.';
+    return true;
+  }
+  if(session.test||!punish){
+    result.textContent='Not quite. Try again.';
+    return false;
+  }
+  result.textContent='Wrong answer. Back to the beginning...';
+  setTimeout(()=>resetProgress('Wrong answer - back to the start.'),450);
+  return false;
+}
+
+function validateStop(stop,index){
+  if(!unlocked(index))return lockReason(index);
+  if(!session.test&&!progress.photos[stop.id])return 'Add arrival proof first.';
+  const hunt=progress.hunt[stop.id]||{};
+  if(!stop.hunt.every((_,huntIndex)=>hunt[huntIndex]))return 'Tick every scavenger item first.';
+  if(stop.activity.type==='quick'&&!(progress.quick[stop.id]||'').trim())return 'Fill in the activity first.';
+  if(stop.activity.type==='sketch'&&!progress.sketch[stop.id])return 'Do the sketch first.';
+  if(stop.activity.type==='dot'&&!progress.dot[stop.id]?.complete)return 'Finish the dot-to-dot first.';
+  if(!progress.quiz[stop.id]?.checked)return 'Check the quiz answers first.';
+  if(!progress.quiz[stop.id]?.correct)return 'Quiz must be correct first.';
+  return '';
+}
+
+async function submitStop(stop,index){
+  if(session.test){
+    progress.completed[stop.id]=true;
+    progress.points[stop.id]=SCORE_PER_STOP;
+    saveProgress();
+    renderApp();
+    scrollToNext(index);
+    return;
+  }
+  const article=document.getElementById(stop.id);
+  const result=article.querySelector('.quizResult');
+  const status=article.querySelector('.completeStatus');
+  if(!progress.quiz[stop.id]?.checked)checkQuiz(stop,result,true);
+  const problem=validateStop(stop,index);
+  if(problem){
+    status.textContent=problem;
+    return;
+  }
+  const submission=buildSubmission(stop);
+  upsertSubmission(submission);
+  progress.submitted[stop.id]={id:submission.id,status:'pending',score:SCORE_PER_STOP,submittedAt:submission.submittedAt};
+  saveProgress();
+  renderApp();
+  await postRemote({action:'submit',submission});
+}
+
+function buildSubmission(stop){
+  const photo=progress.photos[stop.id]||{};
+  return {
+    id:session.username+'-'+stop.id+'-'+Date.now(),
+    username:session.username,
+    stopId:stop.id,
+    stopTitle:stop.title,
+    day:stop.day,
+    hotel:stop.hotel,
+    score:SCORE_PER_STOP,
+    bonus:0,
+    status:'pending',
+    submittedAt:new Date().toISOString(),
+    updatedAt:new Date().toISOString(),
+    proofName:photo.name||'',
+    proofImage:photo.dataUrl||'',
+    activity:activitySummary(stop)
+  };
+}
+
+function activitySummary(stop){
+  if(stop.activity.type==='quick')return (progress.quick[stop.id]||'').trim();
+  if(stop.activity.type==='sketch')return 'Sketch completed';
+  if(stop.activity.type==='dot')return 'Dot-to-dot completed';
+  return '';
+}
+
+function upsertSubmission(submission){
+  const existing=shared.submissions.findIndex(item=>item.username===submission.username&&item.stopId===submission.stopId&&item.status==='pending');
+  if(existing>=0)shared.submissions[existing]=submission;
+  else shared.submissions.push(submission);
+  saveShared();
+}
+
+async function approveSubmission(id,bonusValue){
+  const bonus=Math.max(0,Math.min(25,Number(bonusValue)||0));
+  updateSubmission(id,{status:'approved',bonus,approvedAt:new Date().toISOString(),approvedBy:session.username,updatedAt:new Date().toISOString()});
+  renderApp();
+  await postRemote({action:'approve',id,bonus,approvedBy:session.username,adminKey:session.adminKey});
+}
+
+async function rejectSubmission(id){
+  updateSubmission(id,{status:'rejected',rejectedAt:new Date().toISOString(),approvedBy:session.username,updatedAt:new Date().toISOString()});
+  renderApp();
+  await postRemote({action:'reject',id,approvedBy:session.username,adminKey:session.adminKey});
+}
+
+function updateSubmission(id,updates){
+  const index=shared.submissions.findIndex(item=>item.id===id);
+  if(index<0)return;
+  shared.submissions[index]={...shared.submissions[index],...updates};
+  saveShared();
+}
+
+async function syncShared(){
+  if(!CONFIG.sheetEndpoint){
+    loadShared();
+    applySharedToProgress();
+    renderApp();
+    return;
+  }
+  els.syncStatus.textContent='Syncing...';
+  try{
+    const url=new URL(CONFIG.sheetEndpoint);
+    url.searchParams.set('action','state');
+    url.searchParams.set('t',Date.now().toString());
+    const response=await fetch(url.toString());
+    const data=await response.json();
+    shared=normaliseShared(data);
+    saveShared();
+    els.syncStatus.textContent='Synced with sheet.';
+  }catch{
+    els.syncStatus.textContent='Sheet sync failed. Using local data.';
+    loadShared();
+  }
+  applySharedToProgress();
+  renderApp();
+}
+
+async function postRemote(payload){
+  if(!CONFIG.sheetEndpoint)return null;
+  try{
+    const response=await fetch(CONFIG.sheetEndpoint,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify(payload)
+    });
+    const data=await response.json();
+    if(data?.submissions){
+      shared=normaliseShared(data);
+      saveShared();
+      renderApp();
+    }
+    return data;
+  }catch{
+    els.syncStatus.textContent='Saved locally. Sheet sync is not reachable.';
+    return null;
+  }
+}
+
+function normaliseShared(data){
+  const clean=freshShared();
+  clean.updatedAt=data?.updatedAt||null;
+  clean.submissions=Array.isArray(data?.submissions)?data.submissions.map(item=>({
+    id:String(item.id||item.ID||''),
+    username:String(item.username||item.Username||''),
+    stopId:String(item.stopId||item.StopID||''),
+    stopTitle:String(item.stopTitle||item.StopTitle||''),
+    day:String(item.day||item.Day||''),
+    hotel:String(item.hotel||item.Hotel||''),
+    score:Number(item.score||item.Score||SCORE_PER_STOP),
+    bonus:Number(item.bonus||item.Bonus||0),
+    status:String(item.status||item.Status||'pending').toLowerCase(),
+    submittedAt:String(item.submittedAt||item.SubmittedAt||''),
+    updatedAt:String(item.updatedAt||item.UpdatedAt||''),
+    approvedAt:String(item.approvedAt||item.ApprovedAt||''),
+    approvedBy:String(item.approvedBy||item.ApprovedBy||''),
+    proofName:String(item.proofName||item.ProofName||''),
+    proofImage:String(item.proofImage||item.ProofImage||item.photoUrl||item.PhotoUrl||''),
+    activity:String(item.activity||item.Activity||'')
+  })).filter(item=>item.id&&item.username&&item.stopId):[];
+  return clean;
+}
+
+function scoreWithBonus(item){
+  return Number(item.score||SCORE_PER_STOP)+Number(item.bonus||0);
+}
+
+function renderReward(){
+  const done=STOPS.every(stop=>statusForStop(stop.id)==='approved');
+  els.amazonBtn.disabled=!done;
+  els.reward.classList.toggle('locked',!done);
+  els.rewardText.textContent=done?'The route is complete. Open the vault.':'Complete every stop and get admin approval to unlock the final message.';
+}
+
+function scrollToNext(index){
+  const next=STOPS[index+1];
+  setTimeout(()=>$(next?'#'+next.id:'#reward')?.scrollIntoView({behavior:'smooth',block:'start'}),150);
+}
+
+function resetProgress(message='Progress reset.'){
+  progress=freshProgress();
+  saveProgress();
+  renderApp();
+  alert(message);
+  $('.app-header')?.scrollIntoView({behavior:'smooth'});
+}
+
+function setupSketch(canvas,clear,id){
+  const ctx=canvas.getContext('2d');
+  let drawing=false;
+  function background(){
+    ctx.fillStyle='#fffaf0';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.strokeStyle='rgba(30,40,52,.14)';
+    ctx.lineWidth=2;
+    for(let x=40;x<canvas.width;x+=40){
+      ctx.beginPath();
+      ctx.moveTo(x,0);
+      ctx.lineTo(x,canvas.height);
+      ctx.stroke();
+    }
+    for(let y=40;y<canvas.height;y+=40){
+      ctx.beginPath();
+      ctx.moveTo(0,y);
+      ctx.lineTo(canvas.width,y);
+      ctx.stroke();
+    }
+  }
+  function loadSketch(){
+    if(progress.sketch[id]){
+      const image=new Image();
+      image.onload=()=>ctx.drawImage(image,0,0);
+      image.src=progress.sketch[id];
+    }else{
+      background();
+    }
+  }
+  function pos(event){
+    const rect=canvas.getBoundingClientRect();
+    return {x:(event.clientX-rect.left)*canvas.width/rect.width,y:(event.clientY-rect.top)*canvas.height/rect.height};
+  }
+  function start(event){
+    event.preventDefault();
+    drawing=true;
+    const point=pos(event);
+    ctx.beginPath();
+    ctx.moveTo(point.x,point.y);
+  }
+  function move(event){
+    if(!drawing)return;
+    event.preventDefault();
+    const point=pos(event);
+    ctx.lineWidth=7;
+    ctx.lineCap='round';
+    ctx.strokeStyle='#20252d';
+    ctx.lineTo(point.x,point.y);
+    ctx.stroke();
+    progress.sketch[id]=canvas.toDataURL('image/png');
+    saveProgress();
+  }
+  canvas.addEventListener('pointerdown',start);
+  canvas.addEventListener('pointermove',move);
+  window.addEventListener('pointerup',()=>{drawing=false});
+  clear.addEventListener('click',()=>{
+    delete progress.sketch[id];
+    saveProgress();
+    background();
+  });
+  loadSketch();
+}
+
+function setupDot(canvas,status,id){
+  const ctx=canvas.getContext('2d');
+  const points=[[180,330],[250,240],[340,205],[430,238],[520,180],[610,245],[720,270],[625,310],[540,300],[470,375],[400,300],[310,310]];
+  let current=progress.dot[id]?.current||0;
+  let complete=Boolean(progress.dot[id]?.complete);
+  function draw(){
+    ctx.clearRect(0,0,900,520);
+    ctx.fillStyle='#fffaf0';
+    ctx.fillRect(0,0,900,520);
+    ctx.fillStyle='rgba(217,63,49,.14)';
+    ctx.beginPath();
+    ctx.moveTo(0,420);
+    ctx.bezierCurveTo(210,360,290,470,470,405);
+    ctx.bezierCurveTo(640,335,760,410,900,330);
+    ctx.lineTo(900,520);
+    ctx.lineTo(0,520);
+    ctx.fill();
+    ctx.lineWidth=5;
+    ctx.strokeStyle='#d93f31';
+    ctx.beginPath();
+    for(let index=0;index<current;index++){
+      const [x,y]=points[index];
+      if(index===0)ctx.moveTo(x,y);
+      else ctx.lineTo(x,y);
+    }
+    if(complete)ctx.closePath();
+    ctx.stroke();
+    points.forEach(([x,y],index)=>{
+      ctx.beginPath();
+      ctx.fillStyle=index<current?'#1d8a62':'#20252d';
+      ctx.arc(x,y,17,0,Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle='#fff';
+      ctx.font='bold 18px system-ui';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      ctx.fillText(String(index+1),x,y+1);
+    });
+    status.textContent=complete?'Dot-to-dot completed.':'Next dot: '+(current+1);
+  }
+  canvas.addEventListener('click',event=>{
+    if(complete)return;
+    const rect=canvas.getBoundingClientRect();
+    const x=(event.clientX-rect.left)*900/rect.width;
+    const y=(event.clientY-rect.top)*520/rect.height;
+    const [px,py]=points[current];
+    if(Math.hypot(x-px,y-py)<38){
+      current++;
+      complete=current>=points.length;
+      progress.dot[id]={current,complete};
+      saveProgress();
+      draw();
+    }else{
+      status.textContent='Wrong dot. Look for number '+(current+1)+'.';
+    }
+  });
+  draw();
+}
+
+function imageToThumb(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>{
+      const image=new Image();
+      image.onload=()=>{
+        const max=520;
+        const scale=Math.min(1,max/Math.max(image.width,image.height));
+        const canvas=document.createElement('canvas');
+        canvas.width=Math.max(1,Math.round(image.width*scale));
+        canvas.height=Math.max(1,Math.round(image.height*scale));
+        const ctx=canvas.getContext('2d');
+        ctx.drawImage(image,0,0,canvas.width,canvas.height);
+        resolve(canvas.toDataURL('image/jpeg',0.68));
+      };
+      image.onerror=reject;
+      image.src=reader.result;
+    };
+    reader.onerror=reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function disableStopInputs(node){
+  node.querySelectorAll('input,textarea,button').forEach(control=>control.disabled=true);
+}
+
+function revealOnScroll(){
+  if(observer)observer.disconnect();
+  if(!('IntersectionObserver'in window)){
+    document.querySelectorAll('.reveal').forEach(item=>item.classList.add('show'));
+    return;
+  }
+  observer=new IntersectionObserver(entries=>entries.forEach(entry=>{
+    if(entry.isIntersecting)entry.target.classList.add('show');
+  }),{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(item=>observer.observe(item));
+}
+
+function formatDate(value){
+  if(!value)return '-';
+  const date=new Date(value);
+  if(Number.isNaN(date.getTime()))return '-';
+  return date.toLocaleString([], {dateStyle:'medium',timeStyle:'short'});
+}
+
+function escapeHtml(value){
+  return String(value).replace(/[&<>"']/g,char=>({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;'
+  }[char]));
+}
+
+function exportCsv(){
+  const rows=[['ID','Username','Stop ID','Stop','Status','Score','Bonus','Submitted','Approved','Approved By','Proof Name','Proof Image']];
+  shared.submissions.forEach(item=>rows.push([
+    item.id,item.username,item.stopId,item.stopTitle,item.status,item.score,item.bonus,item.submittedAt,item.approvedAt,item.approvedBy,item.proofName,item.proofImage
+  ]));
+  const csv=rows.map(row=>row.map(value=>'"'+String(value??'').replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const link=document.createElement('a');
+  link.href=URL.createObjectURL(blob);
+  link.download='route66-leaderboard.csv';
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+async function doLogin(name,password){
+  if(name.trim().toLowerCase()==='test'){
+    session={username:'test',role:'player',test:true};
+    sessionStorage.setItem(STORAGE.session,JSON.stringify(session));
+    await openSite();
+    return true;
+  }
+  const accountName=normalName(name);
+  if(!accountName)return false;
+  const account=ACCOUNTS[accountName];
+  const hashed=await sha256(password);
+  if(hashed!==account.hash)return false;
+  session={username:accountName,role:account.role,test:false};
+  if(account.role==='admin')session.adminKey=password;
+  sessionStorage.setItem(STORAGE.session,JSON.stringify(session));
+  await openSite();
+  return true;
+}
+
+async function openSite(){
+  loadProgress();
+  loadShared();
+  els.login.classList.add('hidden');
+  els.site.classList.remove('hidden');
+  renderApp();
+  await syncShared();
+}
+
+function bindEvents(){
+  els.loginForm.addEventListener('submit',async event=>{
+    event.preventDefault();
+    els.loginError.textContent='';
+    const ok=await doLogin(els.username.value,els.password.value);
+    if(!ok)els.loginError.textContent='Wrong username or password.';
+  });
+  els.logoutBtn.addEventListener('click',()=>{
+    sessionStorage.removeItem(STORAGE.session);
+    session=null;
+    els.site.classList.add('hidden');
+    els.login.classList.remove('hidden');
+  });
+  els.resetBtn.addEventListener('click',()=>{
+    if(confirm('Reset local progress for this user?'))resetProgress('Progress reset.');
+  });
+  els.printBtn.addEventListener('click',()=>window.print());
+  els.syncBtn.addEventListener('click',syncShared);
+  els.exportCsvBtn.addEventListener('click',exportCsv);
+  els.adminRefreshBtn.addEventListener('click',syncShared);
+  els.amazonBtn.addEventListener('click',()=>{
+    if(!els.amazonBtn.disabled)els.voucher.classList.remove('hidden');
+  });
+}
+
+bindEvents();
+const previewParams=new URLSearchParams(location.search);
+if(previewParams.get('preview')==='test'){
+  session={username:'test',role:'player',test:true};
+  sessionStorage.setItem(STORAGE.session,JSON.stringify(session));
+  openSite();
+}else{
+  try{
+    const saved=JSON.parse(sessionStorage.getItem(STORAGE.session)||'null');
+    if(saved?.username){
+      session=saved;
+      openSite();
+    }
+  }catch{}
+}
