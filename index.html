@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Route 66 Family Challenge</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- LOGIN -->
+  <section id="login" class="login-screen">
+    <div class="login-panel">
+      <p class="eyebrow">America 2026</p>
+      <h1>Route 66 Challenge</h1>
+      <p class="lead">Beat each stop to unlock the next one on the map!</p>
+      <form id="loginForm" class="login-form">
+        <label><span>Name</span>
+          <input id="username" autocomplete="username" placeholder="Jacob, Lily, Hannah, Ethan, admin, or test" required />
+        </label>
+        <label><span>Password</span>
+          <input id="password" type="password" autocomplete="current-password" placeholder="Leave blank for test" />
+        </label>
+        <button class="btn btn-primary" type="submit">Start the adventure</button>
+        <p id="loginError" class="error" aria-live="polite"></p>
+      </form>
+      <p class="small">Type <b>test</b> as the name to preview with every stop unlocked.</p>
+    </div>
+  </section>
+
+  <main id="site" class="app hidden">
+    <!-- TOP BAR -->
+    <nav class="topbar">
+      <div class="brand">
+        <span class="route-badge">Route 66</span>
+        <span id="who" class="who"></span>
+      </div>
+      <div class="actions">
+        <button id="syncBtn" class="btn btn-quiet" type="button">Sync</button>
+        <button id="logoutBtn" class="btn btn-quiet" type="button">Log out</button>
+      </div>
+    </nav>
+
+    <!-- ===================== HOME / MAP VIEW ===================== -->
+    <section id="homeView">
+      <div id="countdown" class="countdown" aria-live="polite"></div>
+
+      <div class="map-head">
+        <h2>The Big Road Trip Map</h2>
+        <p id="mapProgress" class="map-progress"></p>
+      </div>
+
+      <div class="map-scroll">
+        <div id="map" class="map-track"></div>
+      </div>
+
+      <!-- final reward -->
+      <section id="reward" class="reward">
+        <p class="eyebrow">Final unlock</p>
+        <h2>Treasure Vault</h2>
+        <p id="rewardText">Finish every stop to unlock the final prize!</p>
+        <button id="amazonBtn" class="amazon" type="button" disabled><span>amazon</span><i aria-hidden="true"></i></button>
+        <p id="voucher" class="voucher hidden">Speak to Ethan for your £15 Amazon voucher!</p>
+      </section>
+
+      <!-- admin only -->
+      <section id="adminPanel" class="admin-panel hidden">
+        <div class="section-head"><h2>Approval queue</h2>
+          <button id="adminRefreshBtn" class="btn btn-quiet" type="button">Refresh</button></div>
+        <p id="sheetStatus" class="sync-status"></p>
+        <div id="adminRows" class="admin-rows"></div>
+        <p id="adminEmpty" class="empty">No stops are waiting for approval.</p>
+      </section>
+
+      <section id="leaderboard" class="board-section hidden">
+        <div class="section-head"><h2>Leaderboard</h2>
+          <button id="exportCsvBtn" class="btn btn-quiet" type="button">Export CSV</button></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>#</th><th>Name</th><th>Points</th><th>Stops</th></tr></thead>
+          <tbody id="leaderboardRows"></tbody>
+        </table></div>
+        <p id="leaderboardEmpty" class="empty">No scores yet.</p>
+      </section>
+    </section>
+
+    <!-- ===================== LEVEL VIEW ===================== -->
+    <section id="levelView" class="level-view hidden">
+      <button id="backBtn" class="btn btn-back" type="button">← Back to map</button>
+      <div id="levelBody"></div>
+    </section>
+  </main>
+
+  <script src="stops.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
