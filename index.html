@@ -4,102 +4,192 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Route 66 Family Challenge</title>
-  <meta name="description" content="Interactive Route 66 family activity challenge for America 2026." />
+  <meta name="description" content="Route 66 family challenge with points, admin approvals, proof photos and a leaderboard." />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="bg-glow"></div>
-  <div class="road-lines"></div>
-
   <section id="login" class="login-screen">
-    <div class="login-card pop-in">
+    <div class="login-panel">
       <p class="eyebrow">America 2026</p>
       <h1>Route 66 Family Challenge</h1>
-      <p>Barstow to Vegas: scavenger hunts, photo proof, quizzes, sketch missions and one suspiciously motivating voucher at the end.</p>
-      <form id="loginForm">
-        <label>Username<input id="username" autocomplete="username" placeholder="Jacob, Lily, Hannah, Ethan, or test" required></label>
-        <label>Password<input id="password" type="password" autocomplete="current-password" placeholder="Not needed for test"></label>
-        <button class="primary" type="submit">Start the challenge</button>
-        <p id="loginError" class="error"></p>
+      <p class="lead">Complete each stop, send proof for admin approval, and race up the leaderboard.</p>
+      <form id="loginForm" class="login-form">
+        <label>
+          <span>Username</span>
+          <input id="username" autocomplete="username" placeholder="Jacob, Lily, Hannah, Ethan, admin, or test" required />
+        </label>
+        <label>
+          <span>Password</span>
+          <input id="password" type="password" autocomplete="current-password" placeholder="Not needed for test" />
+        </label>
+        <button class="btn btn-primary" type="submit">Start</button>
+        <p id="loginError" class="error" aria-live="polite"></p>
       </form>
-      <p class="small">Use username <b>test</b> for preview mode. No password, no locks.</p>
+      <p class="small">Use username <b>test</b> for preview mode with every stop open.</p>
     </div>
   </section>
 
-  <main id="site" class="hidden">
-    <header class="hero panel reveal show">
-      <nav class="topbar">
-        <div><span class="pill">ROUTE 66</span><span id="who" class="who"></span></div>
+  <main id="site" class="app hidden">
+    <header class="app-header">
+      <nav class="topbar" aria-label="Site controls">
+        <div class="brand">
+          <span class="route-badge">Route 66</span>
+          <span id="who" class="who"></span>
+        </div>
         <div class="actions">
-          <button id="printBtn" class="ghost">Print A4/A5</button>
-          <button id="resetBtn" class="ghost danger">Reset</button>
-          <button id="logoutBtn" class="ghost">Log out</button>
+          <button id="syncBtn" class="btn btn-quiet" type="button">Sync</button>
+          <button id="printBtn" class="btn btn-quiet" type="button">Print</button>
+          <button id="resetBtn" class="btn btn-danger" type="button">Reset</button>
+          <button id="logoutBtn" class="btn btn-quiet" type="button">Log out</button>
         </div>
       </nav>
-      <div class="hero-grid">
+
+      <section class="hero">
         <div>
-          <p class="eyebrow">12–20 August 2026</p>
-          <h2>Unlock the road from Barstow to Vegas</h2>
-          <p>Each stop has a scavenger hunt, a photo proof box, a real place image, facts, a mini activity, and a quiz. In normal mode, wrong quiz answers send you back to the start. Yes, brutal. Effective, though.</p>
-          <div class="stats">
-            <div><strong id="doneCount">0</strong><span>done</span></div>
-            <div><strong id="totalCount">0</strong><span>stops</span></div>
-            <div><strong id="percentCount">0%</strong><span>complete</span></div>
-          </div>
+          <p class="eyebrow">12-20 August 2026</p>
+          <h2>Barstow to Vegas, one approved stop at a time.</h2>
+          <p>Photos now preview and save, completed stops wait for admin approval, and approved points feed the leaderboard.</p>
+          <p id="syncStatus" class="sync-status" aria-live="polite"></p>
         </div>
-        <div class="mission-card">
-          <h3>Mission rules</h3>
-          <ol>
-            <li>Open the unlocked stop.</li>
-            <li>Add photo proof. It stays on this browser only.</li>
-            <li>Tick every scavenger item.</li>
-            <li>Finish the activity and quiz.</li>
-            <li>Unlock the final voucher vault.</li>
-          </ol>
+        <div class="stats" aria-label="Current progress">
+          <div><strong id="doneCount">0</strong><span id="doneLabel">approved</span></div>
+          <div><strong id="pointsCount">0</strong><span>points</span></div>
+          <div><strong id="pendingCount">0</strong><span>pending</span></div>
         </div>
-      </div>
+      </section>
     </header>
 
-    <aside id="rail" class="rail"></aside>
-    <section id="stops" class="stops"></section>
+    <nav id="routeNav" class="route-nav" aria-label="Route stops"></nav>
 
-    <section id="reward" class="reward panel reveal">
-      <p class="eyebrow">Final unlock</p>
-      <h2>Voucher Vault</h2>
-      <p id="rewardText">Complete every stop correctly to unlock the final message.</p>
-      <button id="amazonBtn" class="amazon" disabled><span>amazon</span><i></i></button>
-      <p id="voucher" class="voucher hidden">Speak to Ethan for your £15 Amazon voucher!!</p>
+    <section id="leaderboard" class="board-section">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Scores</p>
+          <h2>Leaderboard</h2>
+        </div>
+        <button id="exportCsvBtn" class="btn btn-quiet" type="button">Export CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Name</th>
+              <th>Points</th>
+              <th>Stops</th>
+              <th>Last approved</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardRows"></tbody>
+        </table>
+      </div>
+      <p id="leaderboardEmpty" class="empty">No approved scores yet.</p>
     </section>
 
-    <footer class="footer panel">
-      <p>Progress is saved locally in this browser. Photo proof is not uploaded to any server. The images are remote real-location images where possible, mostly from Wikimedia Commons.</p>
-    </footer>
+    <section id="adminPanel" class="admin-panel hidden">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Admin</p>
+          <h2>Approval queue</h2>
+        </div>
+        <button id="adminRefreshBtn" class="btn btn-quiet" type="button">Refresh</button>
+      </div>
+      <p id="sheetStatus" class="sync-status"></p>
+      <a id="sheetLink" class="sheet-link hidden" href="#" target="_blank" rel="noreferrer">Open spreadsheet</a>
+      <div id="adminRows" class="admin-rows"></div>
+      <p id="adminEmpty" class="empty">No stops are waiting for approval.</p>
+    </section>
+
+    <section id="stops" class="stops"></section>
+
+    <section id="reward" class="reward">
+      <p class="eyebrow">Final unlock</p>
+      <h2>Voucher Vault</h2>
+      <p id="rewardText">Complete every stop and get admin approval to unlock the final message.</p>
+      <button id="amazonBtn" class="amazon" type="button" disabled>
+        <span>amazon</span>
+        <i aria-hidden="true"></i>
+      </button>
+      <p id="voucher" class="voucher hidden">Speak to Ethan for your GBP 15 Amazon voucher!</p>
+    </section>
   </main>
 
   <template id="stopTemplate">
-    <article class="stop panel reveal">
-      <div class="image-box">
-        <img class="stop-img" loading="lazy" alt="">
-        <div class="locked"><strong>🔒 Locked</strong><span></span></div>
+    <article class="stop-card reveal">
+      <div class="image-pane">
+        <img class="stop-img" loading="lazy" alt="" />
+        <div class="image-fallback" aria-hidden="true"></div>
+        <div class="lock-overlay">
+          <strong>Locked</strong>
+          <span></span>
+        </div>
       </div>
-      <div class="stop-content">
-        <p class="kicker"></p>
+      <div class="stop-body">
+        <div class="stop-top">
+          <p class="kicker"></p>
+          <span class="status-pill"></span>
+        </div>
         <h2></h2>
         <p class="subtitle"></p>
         <div class="chips"></div>
-        <div class="two-col">
-          <section class="card"><h3>Fun facts</h3><ul class="facts"></ul></section>
-          <section class="card proof"><h3>Arrival photo proof</h3><p>Choose a photo. It stays in this browser only.</p><input class="photo" type="file" accept="image/*"><p class="proofStatus"></p></section>
+
+        <section class="task-block facts-block">
+          <h3>Fun facts</h3>
+          <ul class="facts"></ul>
+        </section>
+
+        <section class="task-block proof-block">
+          <div class="task-title">
+            <h3>Arrival proof</h3>
+            <span class="points-label">20 pts</span>
+          </div>
+          <input class="photo" type="file" accept="image/*" />
+          <img class="proof-preview hidden" alt="Uploaded proof preview" />
+          <p class="proofStatus"></p>
+        </section>
+
+        <section class="task-block hunt-block">
+          <div class="task-title">
+            <h3>Scavenger hunt</h3>
+            <span class="points-label">25 pts</span>
+          </div>
+          <div class="hunt"></div>
+        </section>
+
+        <section class="task-block activity-block">
+          <div class="task-title">
+            <h3></h3>
+            <span class="points-label">20 pts</span>
+          </div>
+          <p></p>
+          <div class="activitySlot"></div>
+        </section>
+
+        <section class="task-block quiz-block">
+          <div class="task-title">
+            <h3>Quiz</h3>
+            <span class="points-label">35 pts</span>
+          </div>
+          <div class="quiz"></div>
+          <button class="btn btn-secondary check" type="button">Check answers</button>
+          <p class="quizResult"></p>
+        </section>
+
+        <div class="approval-box">
+          <strong class="approval-title"></strong>
+          <span class="approval-copy"></span>
         </div>
-        <section class="card"><h3>Scavenger hunt</h3><div class="hunt"></div></section>
-        <section class="card activity"><h3></h3><p></p><div class="activitySlot"></div></section>
-        <section class="card quiz-card"><h3>True/false + quick quiz</h3><div class="quiz"></div><button class="secondary check">Check answers</button><p class="quizResult"></p></section>
-        <div class="complete-row"><button class="primary complete">Complete this stop</button><span class="completeStatus"></span></div>
+
+        <div class="complete-row">
+          <button class="btn btn-primary submit-stop" type="button">Submit for approval</button>
+          <span class="completeStatus"></span>
+        </div>
         <p class="credit"></p>
       </div>
     </article>
   </template>
 
+  <script src="stops.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
