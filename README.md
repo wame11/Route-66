@@ -1,17 +1,41 @@
 # Route 66 Family Challenge
 
-Interactive static website for the America 2026 Barstow-to-Vegas family activity challenge.
+Static GitHub Pages site for the America 2026 Route 66 family activity challenge.
 
-## Included
+## What is included
 
-- Login for Jacob, Lily, Hannah and Ethan.
-- `test` login opens everything with no password and no locks.
-- Date-locked route sections for the August 2026 itinerary.
-- Sequential unlocks: complete one stop before the next opens.
-- Wrong quiz answer in normal mode resets progress from the beginning.
-- Browser-only photo proof inputs. Files are not uploaded anywhere.
-- Scavenger hunts, true/false questions, mini challenges, sketch boxes and a Grand Canyon dot-to-dot.
-- Final Amazon-style reward screen after all stops are completed.
+- Existing player logins for Jacob, Lily, Hannah and Ethan.
+- `test` login opens every stop for preview mode.
+- Admin login: username `admin`, password `woodreach`.
+- Phone, iPad and laptop friendly layout.
+- Route stop images now use filter-friendly remote image URLs with a visible fallback if an image link fails.
+- Proof photo upload with an on-page preview.
+- 100 points per approved stop, plus optional admin bonus points from 0 to 25.
+- Leaderboard table and CSV export.
+- Admin approval queue. A player can move to the next stop only after approval.
+- Optional Google Sheets / Apps Script backend in `sheet-worker.gs`.
+- Local fallback mode when no Google Sheet endpoint is configured.
+
+## Google Sheet setup
+
+The site works immediately in local fallback mode, but different devices will only share scores after you connect a Google Sheet.
+
+1. Create a Google Sheet.
+2. Open **Extensions > Apps Script**.
+3. Paste the contents of `sheet-worker.gs`.
+4. Deploy it as a **Web app**.
+5. Set access to **Anyone with the link**.
+6. Copy the Web App URL.
+7. In `app.js`, paste it into:
+
+```js
+const CONFIG={
+  sheetEndpoint:'YOUR_WEB_APP_URL_HERE',
+  sheetUrl:'YOUR_GOOGLE_SHEET_URL_HERE'
+};
+```
+
+The Apps Script creates a `Submissions` sheet and a Drive folder called `Route 66 Proof Photos`.
 
 ## Publish on GitHub Pages
 
@@ -21,15 +45,15 @@ Interactive static website for the America 2026 Barstow-to-Vegas family activity
 4. Choose branch **main** and folder **/root**.
 5. Save.
 
-The site is fully static and needs no server.
-
 ## Files
 
-- `index.html` — page structure
-- `styles.css` — design, animations and print layout
-- `app.js` — login, locks, progress, quizzes and activities
-- `.nojekyll` — keeps GitHub Pages simple
+- `index.html` - page structure.
+- `styles.css` - responsive design.
+- `stops.js` - itinerary stop data.
+- `app.js` - login, route progress, points, leaderboard and approvals.
+- `sheet-worker.gs` - optional Google Sheets backend.
+- `.nojekyll` - keeps GitHub Pages simple.
 
 ## Security note
 
-This is a family game login, not real security. Passwords are checked in the browser. Do not reuse these passwords for anything important.
+This is a family game login, not real account security. Password checks happen in the browser, and the admin key is only suitable for this private family challenge.
