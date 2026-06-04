@@ -6,8 +6,8 @@ const ACCOUNTS={
   admin:{role:'admin',hash:'7f3d56bb44da1a1f5239ac9db712488db90f135d999290ed9104eba8691096e2'}
 };
 const CONFIG={
-  sheetEndpoint:'',
-  sheetUrl:''
+  sheetEndpoint:'https://script.google.com/macros/s/AKfycbx_qOmtVWPm7BuClVf1Yj-w4pV7OyWgEzxntc89hgxNeQ9FB-acd6j5NcC0rO7wgkGy/exec',
+  sheetUrl:'https://docs.google.com/spreadsheets/d/17vA0P0tY8GM2QudlaGCQ3F7T1Dxxr9MRuxWHZ3E4p8U/edit?gid=0#gid=0'
 };
 
 const SCORE_PER_STOP=100;
