@@ -6,7 +6,7 @@ const ACCOUNTS={
   admin:{role:'admin',hash:'7f3d56bb44da1a1f5239ac9db712488db90f135d999290ed9104eba8691096e2'}
 };
 const CONFIG={
-  sheetEndpoint:'',
+  sheetEndpoint:'https://script.google.com/macros/s/AKfycbwCyuIkTJoqpZXOxMThCGz0PX3rWZn0EC-W9lKdhh9e1iB7pL1l608XRRP7VooUm_25/exec',
   sheetUrl:''
 };
 
