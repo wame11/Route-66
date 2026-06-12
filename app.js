@@ -22,6 +22,7 @@ const els={
   login:$('#login'),site:$('#site'),loginForm:$('#loginForm'),username:$('#username'),password:$('#password'),loginError:$('#loginError'),
   who:$('#who'),homeView:$('#homeView'),levelView:$('#levelView'),levelBody:$('#levelBody'),backBtn:$('#backBtn'),
   countdown:$('#countdown'),map:$('#map'),mapProgress:$('#mapProgress'),
+  hudName:$('#hudName'),hudFill:$('#hudFill'),hudCaption:$('#hudCaption'),hudScore:$('#hudScore'),hudAvatar:$('#hudAvatar'),hud:$('#hud'),
   reward:$('#reward'),rewardText:$('#rewardText'),amazonBtn:$('#amazonBtn'),voucher:$('#voucher'),
   adminPanel:$('#adminPanel'),adminRows:$('#adminRows'),adminEmpty:$('#adminEmpty'),sheetStatus:$('#sheetStatus'),
   leaderboard:$('#leaderboard'),leaderboardRows:$('#leaderboardRows'),leaderboardEmpty:$('#leaderboardEmpty'),
@@ -84,6 +85,34 @@ function applySharedToProgress(){
   saveProgress();
 }
 
+/* ---------- SCENE ART (inline SVG — never fails to load) ---------- */
+const SCENE_BY_STOP={heathrow:'airport',lax:'airport2',barstow:'motel',needles:'river',oatman:'town',kingman:'motel',peach:'desert',seligman:'town',meteor:'crater',bearizona:'forest',grand:'canyon',cameron:'town',monument:'valley',forrest:'highway',bluff:'motel',horseshoe:'bend',page:'motel',antelope:'slot',stgeorge:'highway',vegas:'vegas'};
+function sceneSVG(type){
+  const sky='<defs><linearGradient id="sk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd98a"/><stop offset=".45" stop-color="#f0a830"/><stop offset=".75" stop-color="#e8651f"/><stop offset="1" stop-color="#5b2a6b"/></linearGradient></defs>'+
+    '<rect width="800" height="240" fill="url(#sk)"/><circle cx="620" cy="78" r="40" fill="#ffc24b"/><circle cx="620" cy="78" r="52" fill="#ffc24b" opacity=".3"/>';
+  const ground='<rect y="185" width="800" height="55" fill="#3b1a47"/>';
+  const road='<path d="M330 240 L400 185 L420 185 L560 240 Z" fill="#241a22"/><path d="M398 240 L408 185 L412 185 L432 240 Z" fill="none" stroke="#ffc24b" stroke-width="4" stroke-dasharray="14 12"/>';
+  const cactus=(x,s)=>'<g transform="translate('+x+',170) scale('+s+')" fill="#3b1a47"><rect x="-5" y="-44" width="10" height="48" rx="5"/><rect x="-22" y="-32" width="8" height="20" rx="4"/><rect x="-22" y="-18" width="18" height="8" rx="4"/><rect x="14" y="-38" width="8" height="22" rx="4"/><rect x="2" y="-22" width="20" height="8" rx="4"/></g>';
+  const mesa=(x,w,h,c)=>'<path d="M'+x+' 185 L'+(x+w*0.18)+' '+(185-h)+' L'+(x+w*0.82)+' '+(185-h)+' L'+(x+w)+' 185 Z" fill="'+c+'"/>';
+  const scenes={
+    airport:sky+ground+'<rect x="60" y="120" width="300" height="65" rx="8" fill="#3b1a47"/><rect x="80" y="135" width="260" height="26" rx="6" fill="#241a22"/><text x="210" y="154" font-size="17" font-weight="900" fill="#ffc24b" text-anchor="middle" font-family="monospace">LHR → LAX 11:40</text><g transform="translate(520,80) rotate(-12)"><ellipse cx="0" cy="0" rx="85" ry="16" fill="#fffaf0"/><path d="M-20 0 L-58 -38 L-40 -38 L-2 -6 Z" fill="#fffaf0"/><path d="M-15 2 L-40 26 L-26 26 L0 6 Z" fill="#fffaf0"/><rect x="58" y="-22" width="14" height="24" rx="6" fill="#e8651f"/><circle cx="40" cy="-4" r="4" fill="#5b2a6b"/><circle cx="20" cy="-4" r="4" fill="#5b2a6b"/><circle cx="0" cy="-4" r="4" fill="#5b2a6b"/></g>',
+    airport2:sky+ground+'<g transform="translate(250,120) rotate(8)"><ellipse cx="0" cy="0" rx="85" ry="16" fill="#fffaf0"/><path d="M-20 0 L-58 -38 L-40 -38 L-2 -6 Z" fill="#fffaf0"/><rect x="58" y="-22" width="14" height="24" rx="6" fill="#e8651f"/></g><g fill="#3b1a47"><rect x="560" y="95" width="14" height="90" rx="7"/><circle cx="567" cy="88" r="22" fill="#5f8a4a"/><circle cx="551" cy="102" r="16" fill="#5f8a4a"/><circle cx="583" cy="102" r="16" fill="#5f8a4a"/></g><g fill="#3b1a47"><rect x="660" y="110" width="12" height="75" rx="6"/><circle cx="666" cy="104" r="18" fill="#5f8a4a"/></g>'+road,
+    motel:sky+ground+road+'<rect x="80" y="115" width="220" height="70" rx="6" fill="#3b1a47"/><rect x="100" y="135" width="34" height="50" fill="#f0a830"/><rect x="150" y="135" width="34" height="34" fill="#ffc24b"/><rect x="200" y="135" width="34" height="34" fill="#ffc24b"/><rect x="250" y="135" width="34" height="50" fill="#f0a830"/><rect x="600" y="70" width="16" height="115" fill="#241a22"/><rect x="540" y="55" width="140" height="48" rx="10" fill="#a8331a"/><text x="610" y="87" font-size="22" font-weight="900" fill="#ffc24b" text-anchor="middle" font-family="sans-serif">MOTEL</text>'+cactus(420,1),
+    river:sky+ground+mesa(40,180,70,'#a8331a')+mesa(580,200,85,'#c1440e')+'<path d="M0 200 C200 188 350 212 500 198 C620 188 720 206 800 196 L800 240 L0 240 Z" fill="#5b2a6b"/><path d="M0 204 C200 192 350 216 500 202 C620 192 720 210 800 200" fill="none" stroke="#8a4d9e" stroke-width="4"/>'+cactus(320,0.9),
+    town:sky+ground+road+'<rect x="60" y="120" width="90" height="65" fill="#a8331a"/><path d="M55 120 L105 95 L155 120 Z" fill="#3b1a47"/><rect x="170" y="130" width="80" height="55" fill="#c1440e"/><rect x="178" y="108" width="64" height="22" fill="#3b1a47"/><rect x="600" y="125" width="100" height="60" fill="#5b2a6b"/><rect x="590" y="105" width="120" height="20" rx="4" fill="#241a22"/><text x="650" y="120" font-size="13" font-weight="900" fill="#ffc24b" text-anchor="middle" font-family="sans-serif">ROUTE 66</text><circle cx="105" cy="150" r="9" fill="#ffc24b"/><rect x="195" y="150" width="14" height="35" fill="#241a22"/>',
+    desert:sky+ground+road+cactus(140,1.3)+cactus(620,1)+cactus(700,0.7)+mesa(280,160,55,'#a8331a')+'<ellipse cx="160" cy="188" rx="60" ry="7" fill="#241a22" opacity=".25"/>',
+    crater:sky+ground+'<path d="M80 185 C180 110 280 95 400 95 C520 95 620 110 720 185 Z" fill="#c1440e"/><ellipse cx="400" cy="120" rx="230" ry="32" fill="#3b1a47"/><ellipse cx="400" cy="116" rx="200" ry="24" fill="#5b2a6b"/><g stroke="#ffc24b" stroke-width="3"><line x1="540" y1="20" x2="500" y2="60"/><line x1="560" y1="35" x2="530" y2="65"/></g><circle cx="490" cy="70" r="9" fill="#ffc24b"/>',
+    forest:sky+ground+[120,200,560,660,740].map((x,i)=>'<g transform="translate('+x+',185)"><rect x="-5" y="-20" width="10" height="20" fill="#3a2417"/><path d="M0 -95 L26 -42 L-26 -42 Z" fill="#3d6230"/><path d="M0 -70 L30 -16 L-30 -16 Z" fill="#5f8a4a"/></g>').join('')+'<g transform="translate(390,160)"><ellipse cx="0" cy="0" rx="46" ry="30" fill="#6b4a2f"/><circle cx="40" cy="-16" r="20" fill="#6b4a2f"/><circle cx="32" cy="-30" r="7" fill="#6b4a2f"/><circle cx="50" cy="-30" r="7" fill="#6b4a2f"/><circle cx="44" cy="-14" r="2.5" fill="#241a22"/><circle cx="52" cy="-14" r="2.5" fill="#241a22"/><ellipse cx="48" cy="-7" rx="5" ry="3.5" fill="#241a22"/></g>',
+    canyon:sky+'<path d="M0 240 L0 90 L90 120 L150 70 L240 130 L240 240 Z" fill="#a8331a"/><path d="M800 240 L800 80 L700 115 L640 65 L560 125 L560 240 Z" fill="#c1440e"/><path d="M240 240 L240 150 L320 175 L400 150 L480 178 L560 150 L560 240 Z" fill="#5b2a6b"/><path d="M300 240 C360 215 440 215 500 240 Z" fill="#3b1a47"/><path d="M340 230 C390 215 420 215 465 230" fill="none" stroke="#8a4d9e" stroke-width="4"/>',
+    valley:sky+ground+'<rect x="90" y="80" width="80" height="105" fill="#a8331a"/><path d="M82 80 L178 80 L170 64 L90 64 Z" fill="#c1440e"/><rect x="340" y="60" width="110" height="125" fill="#c1440e"/><path d="M330 60 L460 60 L450 42 L340 42 Z" fill="#a8331a"/><rect x="620" y="95" width="70" height="90" fill="#a8331a"/>'+cactus(250,0.8)+'<ellipse cx="395" cy="192" rx="80" ry="8" fill="#241a22" opacity=".25"/>',
+    highway:sky+ground+'<path d="M250 240 L385 100 L415 100 L550 240 Z" fill="#241a22"/><path d="M396 240 L399 100 L401 100 L404 240 Z" fill="none" stroke="#ffc24b" stroke-width="4" stroke-dasharray="16 14"/><rect x="90" y="60" width="60" height="125" fill="#c1440e"/><rect x="660" y="75" width="55" height="110" fill="#a8331a"/>'+cactus(620,0.8),
+    bend:sky+'<rect y="50" width="800" height="190" fill="#c1440e"/><path d="M400 240 C400 130 250 130 250 200 C250 260 550 260 550 200 C550 130 400 130 400 240 Z" fill="#a8331a"/><path d="M400 240 C400 150 280 150 280 200 C280 244 520 244 520 200 C520 150 400 150 400 240 Z" fill="#5b2a6b"/><path d="M400 240 C400 165 300 162 300 200 C300 232 500 232 500 200 C500 162 400 165 400 240 Z" fill="#3b1a47"/>',
+    slot:'<defs><linearGradient id="sl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc24b"/><stop offset=".5" stop-color="#e8651f"/><stop offset="1" stop-color="#5b2a6b"/></linearGradient></defs><rect width="800" height="240" fill="url(#sl)"/><path d="M0 0 C140 70 60 150 180 240 L0 240 Z" fill="#a8331a"/><path d="M800 0 C660 80 740 160 620 240 L800 240 Z" fill="#c1440e"/><path d="M310 0 C400 80 330 160 400 240 L420 240 C360 160 440 80 360 0 Z" fill="#3b1a47" opacity=".55"/><path d="M380 0 L460 240 L500 240 L430 0 Z" fill="#ffd98a" opacity=".5"/>',
+    vegas:'<defs><linearGradient id="vg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b1a47"/><stop offset="1" stop-color="#241a22"/></linearGradient></defs><rect width="800" height="240" fill="url(#vg)"/><circle cx="120" cy="50" r="2" fill="#fff"/><circle cx="300" cy="30" r="2" fill="#fff"/><circle cx="520" cy="45" r="2" fill="#fff"/><circle cx="700" cy="28" r="2" fill="#fff"/><rect x="90" y="90" width="80" height="150" fill="#5b2a6b"/><rect x="220" y="60" width="100" height="180" fill="#a8331a"/><rect x="370" y="100" width="70" height="140" fill="#5b2a6b"/><rect x="490" y="50" width="110" height="190" fill="#c1440e"/><rect x="650" y="85" width="75" height="155" fill="#5b2a6b"/>'+[...Array(24)].map((_,i)=>'<rect x="'+(100+(i%4)*18+Math.floor(i/4)*130)+'" y="'+(105+(i%3)*30)+'" width="9" height="13" fill="#ffc24b"/>').join('')+'<rect x="230" y="38" width="80" height="26" rx="8" fill="#e8651f"/><text x="270" y="57" font-size="16" font-weight="900" fill="#ffd98a" text-anchor="middle" font-family="sans-serif">VEGAS</text>'
+  };
+  return '<svg class="scene" viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" role="img" aria-hidden="true">'+(scenes[type]||scenes.desert)+'</svg>';
+}
+
 /* ---------- COUNTDOWN ---------- */
 function renderCountdown(){
   const now=Date.now();
@@ -121,19 +150,33 @@ function openLevel(index){
   window.scrollTo({top:0});
 }
 
+function playerPoints(u){
+  const t=shared.submissions.filter(i=>i.username===u&&i.status==='approved').reduce((s,i)=>s+scoreWithBonus(i),0);
+  if(t)return t;
+  return Object.values(progress.points).reduce((s,v)=>s+Number(v||0),0);
+}
+const AVATARS={Jacob:'🦖',Lily:'🦄',Hannah:'🌻',Ethan:'🚀',admin:'👑',test:'🧪'};
+
 function renderHome(){
   els.who.textContent=session.test?'test mode':isAdmin()?'admin':session.username;
   renderCountdown();
   renderMap();
   els.adminPanel.classList.toggle('hidden',!isAdmin());
   els.leaderboard.classList.toggle('hidden',!isAdmin());
+  els.hud.classList.toggle('hidden',isAdmin());
   renderAdminPanel();
   renderLeaderboard();
   renderReward();
   if(!isAdmin()){
     const done=STOPS.filter(s=>statusForStop(s.id)==='approved').length;
-    els.mapProgress.textContent=done>=STOPS.length?'Every stop unlocked! 🏆':done+' of '+STOPS.length+' stops unlocked';
-  }else{els.mapProgress.textContent='Admin view — approve photos below.';}
+    const pct=Math.round(done/STOPS.length*100);
+    els.mapProgress.textContent=done>=STOPS.length?'Every stop cleared! 🏆':'Tap the glowing stop to play!';
+    els.hudName.textContent=(session.test?'Test pilot':session.username);
+    els.hudAvatar.textContent=AVATARS[session.username]||'🚗';
+    els.hudFill.style.width=pct+'%';
+    els.hudCaption.textContent=done+' / '+STOPS.length+' stops cleared · '+pct+'%';
+    els.hudScore.textContent=playerPoints(session.username);
+  }else{els.mapProgress.textContent='Admin view — approve missions below.';}
 }
 
 function renderMap(){
@@ -147,12 +190,14 @@ function renderMap(){
     const isLocked=!unlocked(index);
     const node=document.createElement('div');
     node.className='level-node '+(index%2===0?'up':'down')+' '+status+(isLocked?' is-locked':'')+(index===nextIndex&&!isLocked?' is-next':'');
-    const sub=isLocked?stop.day:status==='approved'?'Done!':status==='pending'?'Waiting…':'Play';
+    const sub=isLocked?stop.day:status==='approved'?'Cleared!':status==='pending'?'Checking…':'Play';
+    const stars=status==='approved'?'★★★':'';
     node.innerHTML=
       '<div class="level-circle" role="button" tabindex="0">'+
         '<span class="level-num">'+(index+1)+'</span>'+
         '<span class="level-emoji">'+stop.emoji+'</span>'+
       '</div>'+
+      '<div class="level-stars">'+stars+'</div>'+
       '<div class="level-title"></div>'+
       '<div class="level-sub">'+sub+'</div>';
     node.querySelector('.level-title').textContent=stop.title;
@@ -169,33 +214,47 @@ function renderMap(){
 /* ---------- LEVEL PAGE ---------- */
 function renderLevel(index){
   const stop=STOPS[index];
-  const status=statusForStop(index===null?'':stop.id);
+  const status=statusForStop(stop.id);
   const locked=!unlocked(index);
-  const labels={approved:['Approved! ⭐','You unlocked the next stop.'],pending:['Waiting for the boss','Your stop is in the approval queue.'],
-    rejected:['Try again','Have another go and resubmit.'],ready:['Ready to play','Finish the tasks and submit!'],admin:['Admin view','Approve from the map screen.']};
-  const [pillText,approvalCopy]=labels[status]||labels.ready;
+  const labels={
+    approved:['Mission cleared ⭐','🏆','You smashed it — next stop unlocked!'],
+    pending:['Checking your mission','🕵️','The boss is reviewing your photo and answers.'],
+    rejected:['Mission failed — retry!','💥','Have another go and resubmit.'],
+    ready:['Mission briefing','🎯','Complete all objectives, then submit!'],
+    admin:['Admin view','👑','Approve from the map screen.']};
+  const [pillText,statusEmoji,statusCopy]=labels[status]||labels.ready;
+
+  const taskSection=(step,title,tag,bodyClass,extra)=>(
+    '<section class="task-block '+bodyClass+'">'+
+      '<div class="task-head"><span class="task-step">'+step+'</span><h3>'+title+'</h3>'+
+      (tag?'<span class="points-label" style="background:var(--asphalt);color:var(--gold);font-size:.68rem;font-weight:900;border-radius:999px;padding:4px 10px">'+tag+'</span>':'')+
+      '<span class="task-done-tag">Done ✓</span></div>'+
+      '<div class="task-body">'+(extra||'')+'</div>'+
+    '</section>');
 
   const root=document.createElement('div');
   root.className='level-card';
   root.innerHTML=
-    '<div class="level-hero">'+
+    sceneSVG(SCENE_BY_STOP[stop.id]||'desert')+
+    '<div class="level-head">'+
       '<div class="hero-emoji">'+stop.emoji+'</div>'+
-      '<div><h1></h1><p class="hero-meta"></p><span class="level-pill">'+escapeHtml(pillText)+'</span></div>'+
+      '<div><h1 class="game-title"></h1><p class="hero-meta"></p><span class="level-pill">'+escapeHtml(pillText)+'</span></div>'+
     '</div>'+
     '<div class="level-pad">'+
-      '<section class="task-block"><h3>Fun facts</h3><ul class="facts"></ul></section>'+
-      '<section class="task-block proof"><h3>Photo <span class="points-label">optional</span></h3><p class="hint">Snap one photo of you at this stop (you can skip this).</p><input class="photo" type="file" accept="image/*"><img class="proof-preview hidden" alt="preview"><p class="proofStatus"></p></section>'+
-      '<section class="task-block"><h3>Scavenger hunt <span class="points-label">tick all 5</span></h3><div class="hunt"></div></section>'+
-      '<section class="task-block activity"><h3 class="act-title"></h3><p class="hint act-prompt"></p><div class="actSlot"></div></section>'+
-      '<section class="task-block"><h3>Quiz <span class="points-label">get them right!</span></h3><div class="quiz"></div><button class="btn btn-secondary check" type="button">Check my answers</button><p class="quizResult"></p></section>'+
-      '<div class="approval-box '+(locked?'':status)+'"><strong>'+escapeHtml(pillText)+'</strong><span>'+escapeHtml(locked?lockReason(index):approvalCopy)+'</span></div>'+
-      '<div class="complete-row"><button class="btn btn-primary submit" type="button">Submit for approval</button><span class="completeStatus"></span></div>'+
+      '<div class="approval-box '+(locked?'':status)+'"><span class="approval-emoji">'+(locked?'🔒':statusEmoji)+'</span><div><strong>'+escapeHtml(locked?'Locked':pillText)+'</strong><span>'+escapeHtml(locked?lockReason(index):statusCopy)+'</span></div></div>'+
+      taskSection(1,'Intel — fun facts','','intel','<ul class="facts"></ul>')+
+      taskSection(2,'Photo proof','required','proof','<p class="hint">📸 Snap a photo of YOU at this stop — no photo, no points!</p><input class="photo" type="file" accept="image/*" capture="environment"><img class="proof-preview hidden" alt="your photo"><p class="proofStatus"></p>')+
+      taskSection(3,'Scavenger hunt','find all 5','hunt-sec','<div class="hunt"></div>')+
+      taskSection(4,'<span class="act-title"></span>','challenge','activity','<p class="hint act-prompt"></p><div class="actSlot"></div>')+
+      taskSection(5,'Boss quiz','beat it!','quiz-sec','<div class="quiz"></div><button class="btn btn-secondary check" type="button">Check answers</button><p class="quizResult"></p>')+
+      '<div class="complete-row"><button class="btn btn-primary submit" type="button">🚩 Complete mission</button><span class="completeStatus"></span></div>'+
     '</div>';
   root.querySelector('h1').textContent=stop.title;
-  root.querySelector('.hero-meta').textContent=stop.day+' · '+stop.loc;
+  root.querySelector('.hero-meta').textContent='Level '+(index+1)+' · '+stop.day+' · '+stop.loc;
   root.querySelector('.facts').innerHTML=stop.facts.map(f=>'<li>'+escapeHtml(f)+'</li>').join('');
   root.querySelector('.act-title').textContent=stop.activity.title;
   root.querySelector('.act-prompt').textContent=stop.activity.prompt;
+  root.querySelector('.intel').classList.add('task-complete');
 
   els.levelBody.innerHTML='';
   els.levelBody.appendChild(root);
@@ -204,15 +263,29 @@ function renderLevel(index){
   renderHunt(root,stop);
   renderActivity(root,stop);
   renderQuiz(root,stop);
+  refreshTaskTags(root,stop);
 
   const submit=root.querySelector('.submit');
   const cs=root.querySelector('.completeStatus');
   if(isAdmin()||session.test){submit.classList.toggle('hidden',isAdmin());}
   if(locked){submit.disabled=true;root.querySelectorAll('input,textarea,button,canvas').forEach(e=>{if(!e.classList.contains('submit'))e.disabled=true;});}
-  if(status==='approved'){submit.disabled=true;submit.textContent='Approved ⭐';}
-  if(status==='pending'){submit.disabled=true;submit.textContent='Waiting for approval…';}
+  if(status==='approved'){submit.disabled=true;submit.textContent='⭐ Mission cleared';}
+  if(status==='pending'){submit.disabled=true;submit.textContent='🕵️ Being checked…';}
   if(isAdmin()){root.querySelectorAll('input,textarea,button.check').forEach(e=>e.disabled=true);}
   submit.addEventListener('click',()=>submitStop(stop,index,cs));
+}
+
+/* light up "Done ✓" tags as objectives finish */
+function refreshTaskTags(root,stop){
+  root.querySelector('.proof')?.classList.toggle('task-complete',Boolean(progress.photos[stop.id]?.dataUrl));
+  const huntDone=stop.hunt.every((_,i)=>(progress.hunt[stop.id]||{})[i]);
+  root.querySelector('.hunt-sec')?.classList.toggle('task-complete',huntDone);
+  let actDone=false;
+  if(stop.activity.type==='quick')actDone=Boolean((progress.quick[stop.id]||'').trim());
+  if(stop.activity.type==='sketch')actDone=Boolean(progress.sketch[stop.id]);
+  if(stop.activity.type==='dot')actDone=Boolean(progress.dot[stop.id]?.complete);
+  root.querySelector('.activity')?.classList.toggle('task-complete',actDone);
+  root.querySelector('.quiz-sec')?.classList.toggle('task-complete',Boolean(progress.quiz[stop.id]?.correct));
 }
 
 function renderProof(root,stop){
@@ -220,12 +293,12 @@ function renderProof(root,stop){
   const prev=root.querySelector('.proof-preview');
   const st=root.querySelector('.proofStatus');
   const saved=progress.photos[stop.id];
-  if(saved?.dataUrl){prev.src=saved.dataUrl;prev.classList.remove('hidden');st.textContent='Photo saved ✓';}
+  if(saved?.dataUrl){prev.src=saved.dataUrl;prev.classList.remove('hidden');st.textContent='Photo locked in ✓';}
   input.addEventListener('change',async e=>{
     const file=e.target.files[0];if(!file)return;
     st.textContent='Saving…';
-    try{const dataUrl=await imageToThumb(file);progress.photos[stop.id]={name:file.name,dataUrl};prev.src=dataUrl;prev.classList.remove('hidden');st.textContent='Photo saved ✓';saveProgress();}
-    catch{st.textContent='Could not read that image.';}
+    try{const dataUrl=await imageToThumb(file);progress.photos[stop.id]={name:file.name,dataUrl};prev.src=dataUrl;prev.classList.remove('hidden');st.textContent='Photo locked in ✓';saveProgress();refreshTaskTags(root,stop);}
+    catch{st.textContent='Could not read that image — try another.';}
   });
 }
 
@@ -237,7 +310,7 @@ function renderHunt(root,stop){
     if(saved[i])label.classList.add('done');
     const cb=document.createElement('input');cb.type='checkbox';cb.checked=Boolean(saved[i]);
     const span=document.createElement('span');span.textContent=item;
-    cb.addEventListener('change',()=>{progress.hunt[stop.id]={...(progress.hunt[stop.id]||{}),[i]:cb.checked};label.classList.toggle('done',cb.checked);saveProgress();});
+    cb.addEventListener('change',()=>{progress.hunt[stop.id]={...(progress.hunt[stop.id]||{}),[i]:cb.checked};label.classList.toggle('done',cb.checked);saveProgress();refreshTaskTags(root,stop);});
     label.append(cb,span);wrap.appendChild(label);
   });
 }
@@ -246,7 +319,7 @@ function renderActivity(root,stop){
   const slot=root.querySelector('.actSlot');
   if(stop.activity.type==='quick'){
     const ta=document.createElement('textarea');ta.placeholder='Write your answer here…';ta.value=progress.quick[stop.id]||'';
-    ta.addEventListener('input',()=>{progress.quick[stop.id]=ta.value;saveProgress();});
+    ta.addEventListener('input',()=>{progress.quick[stop.id]=ta.value;saveProgress();refreshTaskTags(root,stop);});
     slot.appendChild(ta);
   }else if(stop.activity.type==='sketch'){
     const w=document.createElement('div');w.className='sketch-wrap';
@@ -276,8 +349,8 @@ function renderQuiz(root,stop){
     });
     block.append(p,opts);wrap.appendChild(block);
   });
-  if(saved.checked)res.textContent=saved.correct?'All correct! ✓':'Not quite — try again.';
-  root.querySelector('.check').addEventListener('click',()=>checkQuiz(stop,res));
+  if(saved.checked)res.textContent=saved.correct?'Boss defeated! ✓':'Not quite — try again!';
+  root.querySelector('.check').addEventListener('click',()=>{checkQuiz(stop,res);refreshTaskTags(root,stop);});
 }
 
 function checkQuiz(stop,res){
@@ -285,14 +358,15 @@ function checkQuiz(stop,res){
   if(stop.quiz.some((_,i)=>cur.answers[i]===undefined)){res.textContent='Answer every question first.';return false;}
   const correct=stop.quiz.every((q,i)=>cur.answers[i]===q[1]);
   progress.quiz[stop.id]={answers:cur.answers,checked:true,correct};saveProgress();
-  res.textContent=correct?'All correct! ✓':'Not quite — try again.';
+  res.textContent=correct?'Boss defeated! ✓':'Not quite — try again!';
   return correct;
 }
 
 function validateStop(stop,index){
   if(!unlocked(index))return lockReason(index);
   if(session.test)return '';
-  if(!stop.hunt.every((_,i)=>(progress.hunt[stop.id]||{})[i]))return 'Tick all 5 scavenger hunt items first.';
+  if(!progress.photos[stop.id]?.dataUrl)return '📸 Photo proof needed — snap a photo at this stop first!';
+  if(!stop.hunt.every((_,i)=>(progress.hunt[stop.id]||{})[i]))return 'Find all 5 scavenger hunt items first.';
   if(stop.activity.type==='quick'&&!(progress.quick[stop.id]||'').trim())return 'Fill in the activity first.';
   if(stop.activity.type==='sketch'&&!progress.sketch[stop.id])return 'Do the sketch first.';
   if(stop.activity.type==='dot'&&!progress.dot[stop.id]?.complete)return 'Finish the dot-to-dot first.';
@@ -308,7 +382,7 @@ async function submitStop(stop,index,cs){
   const sub=buildSubmission(stop);
   upsertSubmission(sub);
   progress.submitted[stop.id]={id:sub.id,status:'pending'};saveProgress();
-  cs.textContent='Sent to the boss for approval! 🎉';
+  cs.textContent='Mission sent to the boss! 🎉';
   await postRemote({action:'submit',submission:sub});
   setTimeout(showHome,700);
 }
