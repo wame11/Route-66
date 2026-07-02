@@ -784,10 +784,10 @@ els.adminRefreshBtn.addEventListener('click',syncShared);
 els.exportCsvBtn.addEventListener('click',exportCsv);
 els.amazonBtn.addEventListener('click',()=>{if(!els.amazonBtn.disabled)els.voucher.classList.remove('hidden');});
 /* talking bear mascot */
-const BEAR_LINES=['Let\u2019s hit the road! \ud83d\udea6','Beat my high score\u2026 if you can!','Snap those photos! \ud83d\udcf8','Route 66, here we come!','I smell snacks\u2026 \ud83c\udf6b','Don\u2019t poke the burros!','Tap the glowing stop!','Grrreat driving, team!','Are we there yet? \ud83d\ude02','Watch out for meteors! \u2604\ufe0f'];
-let bearTimer=null;
-function bearSay(){const b=document.getElementById('bearBubble');if(!b)return;b.textContent=BEAR_LINES[Math.floor(Math.random()*BEAR_LINES.length)];b.classList.add('show');setTimeout(()=>b.classList.remove('show'),4200);}
-function startBear(){clearInterval(bearTimer);bearSay();bearTimer=setInterval(bearSay,9000);}
+const BEAR_LINES=['Let\u2019s hit the road! \ud83d\udea6','Beat my high score\u2026 if you can!','Snap those photos! \ud83d\udcf8','Route 66, here we come!','I smell snacks\u2026 \ud83c\udf6b','Don\u2019t poke the burros!','Tap the glowing stop!','Grrreat driving, team!','Are we there yet? \ud83d\ude02','Watch out for meteors! \u2604\ufe0f','I bet Lily wins this one\u2026','Jacob, is that your best score?!','Bears LOVE scavenger hunts.','The Grand Canyon is GRRRAND.','Vegas lights, here I come! \ud83c\udfb0','Don\u2019t feed me\u2026 feed the leaderboard!','5 games per stop \u2014 beat them ALL!','Hannah\u2019s coming for first place!','Ethan built all this. Show off. \ud83d\ude0f','Photo of EVERY hunt item, no cheating!','My cousin lives at Bearizona!','Fastest paws in the West. \ud83d\udc3e','Bonus points for extra wins!','Horseshoe Bend \u2014 stay back from the edge!','I call shotgun! \ud83d\ude97','Winner gets\u2026 my respect. And points.','Simon says\u2026 tap faster!','Jackpot!! Oh wait, wrong game.','Stretch those tapping fingers!','11 hours on a plane? Wake me in LA.'];
+let bearTimer=null,bearIdx=-1;
+function bearSay(){const b=document.getElementById('bearBubble');if(!b)return;let i;do{i=Math.floor(Math.random()*BEAR_LINES.length);}while(i===bearIdx);bearIdx=i;b.textContent=BEAR_LINES[i];b.classList.add('show');setTimeout(()=>b.classList.remove('show'),4600);}
+function startBear(){clearInterval(bearTimer);setTimeout(bearSay,800);bearTimer=setInterval(bearSay,5500);}
 const pp=new URLSearchParams(location.search);
 if(pp.get('preview')==='test'){session={username:'test',role:'player',test:true};sessionStorage.setItem(STORAGE.session,JSON.stringify(session));openSite();}
 else{try{const s=JSON.parse(sessionStorage.getItem(STORAGE.session)||'null');if(s?.username){session=s;openSite();}}catch{}}
