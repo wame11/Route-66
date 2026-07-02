@@ -1,4 +1,4 @@
-const CACHE_NAME = 'route66-v3';
+const CACHE_NAME = 'route66-v4';
 const ASSETS = [
   './',
   './index.html',
@@ -16,7 +16,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((names) =>
       Promise.all(names.filter((n) => n !== CACHE_NAME).map((n) => caches.delete(n)))
-    )
+    ).then(() => clients.claim())
   );
 });
 
