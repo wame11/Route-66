@@ -12,7 +12,7 @@
     <div class="login-panel">
       <p class="eyebrow">America 2026</p>
       <h1>Route 66 Challenge</h1>
-      <p class="lead">Beat each stop to unlock the next one on the map!</p>
+      <p class="lead">Beat the arcade game, snap your targets, clear the quiz — unlock the road!</p>
       <form id="loginForm" class="login-form">
         <label><span>Name</span>
           <input id="username" autocomplete="username" placeholder="Jacob, Lily, Hannah, Ethan, admin, or test" required />
@@ -28,7 +28,6 @@
   </section>
 
   <main id="site" class="app hidden">
-    <!-- TOP BAR -->
     <nav class="topbar">
       <div class="brand">
         <span class="route-badge">Route 66</span>
@@ -40,7 +39,7 @@
       </div>
     </nav>
 
-    <!-- ===================== HOME / MAP VIEW ===================== -->
+    <!-- HOME / MAP VIEW -->
     <section id="homeView">
       <div id="countdown" class="countdown" aria-live="polite"></div>
 
@@ -51,34 +50,29 @@
           <div class="hud-bar"><div class="hud-fill" id="hudFill"></div></div>
           <div class="hud-caption" id="hudCaption"></div>
         </div>
-        <div class="hud-score"><b id="hudScore">0</b><span>points</span></div>
+        <div class="hud-score"><span class="coin">🪙</span><b id="hudScore">0</b><span>points</span></div>
       </div>
 
       <div class="map-head">
         <h2>The Big Road Trip Map</h2>
         <p id="mapProgress" class="map-progress"></p>
       </div>
+      <div class="map-scroll"><div id="map" class="map-track"></div></div>
 
-      <div class="map-scroll">
-        <div id="map" class="map-track"></div>
-      </div>
-
-      <!-- final reward -->
       <section id="reward" class="reward">
         <p class="eyebrow">Final unlock</p>
         <h2>Treasure Vault</h2>
-        <p id="rewardText">Finish every stop to unlock the final prize!</p>
+        <p id="rewardText">Clear every stop to unlock the final prize!</p>
         <button id="amazonBtn" class="amazon" type="button" disabled><span>amazon</span><i aria-hidden="true"></i></button>
         <p id="voucher" class="voucher hidden">Speak to Ethan for your £15 Amazon voucher!</p>
       </section>
 
-      <!-- admin only -->
       <section id="adminPanel" class="admin-panel hidden">
         <div class="section-head"><h2>Approval queue</h2>
           <button id="adminRefreshBtn" class="btn btn-quiet" type="button">Refresh</button></div>
         <p id="sheetStatus" class="sync-status"></p>
         <div id="adminRows" class="admin-rows"></div>
-        <p id="adminEmpty" class="empty">No stops are waiting for approval.</p>
+        <p id="adminEmpty" class="empty">No missions are waiting for approval.</p>
       </section>
 
       <section id="leaderboard" class="board-section hidden">
@@ -92,7 +86,7 @@
       </section>
     </section>
 
-    <!-- ===================== LEVEL VIEW ===================== -->
+    <!-- LEVEL VIEW -->
     <section id="levelView" class="level-view hidden">
       <button id="backBtn" class="btn btn-back" type="button">← Back to map</button>
       <div id="levelBody"></div>
