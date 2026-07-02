@@ -366,9 +366,11 @@ function egCatch(stage,g,report){
   }
   function over(){run=false;cancelAnimationFrame(raf);report(caught,won);
     ctx.fillStyle='rgba(36,26,34,.78)';ctx.fillRect(0,0,600,300);ctx.fillStyle='#ffc24b';ctx.textAlign='center';ctx.font='bold 30px sans-serif';ctx.fillText('Out of lives! '+caught+' caught',300,140);ctx.font='bold 17px sans-serif';ctx.fillText('Tap to play again',300,175);}
-  c.addEventListener('pointermove',e=>{const r=c.getBoundingClientRect();bx=(e.clientX-r.left)*600/r.width;});
-  c.addEventListener('pointerdown',e=>{const r=c.getBoundingClientRect();bx=(e.clientX-r.left)*600/r.width;
+  c.addEventListener('pointermove',e=>{e.preventDefault();const r=c.getBoundingClientRect();bx=(e.clientX-r.left)*600/r.width;});
+  c.addEventListener('pointerdown',e=>{e.preventDefault();try{c.setPointerCapture(e.pointerId);}catch(_){/**/}
+    const r=c.getBoundingClientRect();bx=(e.clientX-r.left)*600/r.width;
     if(!run){items=[];caught=0;lives=3;t=0;speed=1;won=false;run=true;frame();}});
+  c.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
   ctx.fillStyle='#f6b85f';ctx.fillRect(0,0,600,300);ctx.fillStyle='#3a2417';ctx.font='bold 24px sans-serif';ctx.textAlign='center';ctx.fillText('Tap to start · slide to catch · 3 lives',300,150);
   hud.innerHTML='Miss a good one or catch a bad one = lose a life!';
   return {stop(){run=false;cancelAnimationFrame(raf);}};
@@ -422,9 +424,11 @@ function egDodge(stage,g,report){
   }
   function over(){run=false;cancelAnimationFrame(raf);report(secs,won);
     ctx.fillStyle='rgba(36,26,34,.78)';ctx.fillRect(0,0,600,300);ctx.fillStyle='#ffc24b';ctx.textAlign='center';ctx.font='bold 30px sans-serif';ctx.fillText('💥 Survived '+secs+'s',300,140);ctx.font='bold 17px sans-serif';ctx.fillText('Tap to retry',300,175);}
-  c.addEventListener('pointermove',e=>{const r=c.getBoundingClientRect();px=(e.clientX-r.left)*600/r.width;});
-  c.addEventListener('pointerdown',e=>{const r=c.getBoundingClientRect();px=(e.clientX-r.left)*600/r.width;
+  c.addEventListener('pointermove',e=>{e.preventDefault();const r=c.getBoundingClientRect();px=(e.clientX-r.left)*600/r.width;});
+  c.addEventListener('pointerdown',e=>{e.preventDefault();try{c.setPointerCapture(e.pointerId);}catch(_){/**/}
+    const r=c.getBoundingClientRect();px=(e.clientX-r.left)*600/r.width;
     if(!run){obs=[];secs=0;t=0;speed=1;lives=3;won=false;run=true;frame();}});
+  c.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
   ctx.fillStyle='#f6b85f';ctx.fillRect(0,0,600,300);ctx.fillStyle='#3a2417';ctx.font='bold 24px sans-serif';ctx.textAlign='center';ctx.fillText('Tap to start · slide to dodge · 3 lives',300,150);
   hud.innerHTML='Dodge everything falling — it gets faster!';
   return {stop(){run=false;cancelAnimationFrame(raf);}};
