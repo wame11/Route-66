@@ -197,8 +197,8 @@ function renderLevel(index){
   root.querySelector('h1').textContent=stop.title;
   root.querySelector('.hero-meta').textContent='Level '+(index+1)+' · '+stop.day+' · '+stop.loc;
   root.querySelector('.facts').innerHTML=stop.facts.map(f=>'<li>'+escapeHtml(f)+'</li>').join('');
-  root.querySelector('.game-name').textContent=stop.game.title;
-  root.querySelector('.game-prompt').textContent=stop.game.prompt;
+  root.querySelector('.game-name').textContent='Arcade — 5 games';
+  root.querySelector('.game-prompt').textContent='Pick a game below. Win any ONE to clear this objective — beat more for bonus points!';
   root.querySelector('.intel').classList.add('task-complete');
 
   els.levelBody.innerHTML='';els.levelBody.appendChild(root);
@@ -770,19 +770,24 @@ async function doLogin(name,password){
 }
 async function openSite(){
   loadProgress();loadShared();
-  els.login.classList.add('hidden');els.site.classList.remove('hidden');document.getElementById('cornerMascot')?.classList.remove('hidden');
+  els.login.classList.add('hidden');els.site.classList.remove('hidden');document.getElementById('cornerMascot')?.classList.remove('hidden');startBear();
   showHome();
   if(countdownTimer)clearInterval(countdownTimer);
   countdownTimer=setInterval(renderCountdown,30000);
   await syncShared();
 }
 els.loginForm.addEventListener('submit',async e=>{e.preventDefault();els.loginError.textContent='';if(!await doLogin(els.username.value,els.password.value))els.loginError.textContent='Wrong name or password.';});
-els.logoutBtn.addEventListener('click',()=>{sessionStorage.removeItem(STORAGE.session);session=null;stopGame();els.site.classList.add('hidden');els.login.classList.remove('hidden');document.getElementById('cornerMascot')?.classList.add('hidden');});
+els.logoutBtn.addEventListener('click',()=>{sessionStorage.removeItem(STORAGE.session);session=null;stopGame();els.site.classList.add('hidden');els.login.classList.remove('hidden');document.getElementById('cornerMascot')?.classList.add('hidden');clearInterval(bearTimer);});
 els.backBtn.addEventListener('click',showHome);
 els.syncBtn.addEventListener('click',syncShared);
 els.adminRefreshBtn.addEventListener('click',syncShared);
 els.exportCsvBtn.addEventListener('click',exportCsv);
 els.amazonBtn.addEventListener('click',()=>{if(!els.amazonBtn.disabled)els.voucher.classList.remove('hidden');});
+/* talking bear mascot */
+const BEAR_LINES=['Let\u2019s hit the road! \ud83d\udea6','Beat my high score\u2026 if you can!','Snap those photos! \ud83d\udcf8','Route 66, here we come!','I smell snacks\u2026 \ud83c\udf6b','Don\u2019t poke the burros!','Tap the glowing stop!','Grrreat driving, team!','Are we there yet? \ud83d\ude02','Watch out for meteors! \u2604\ufe0f'];
+let bearTimer=null;
+function bearSay(){const b=document.getElementById('bearBubble');if(!b)return;b.textContent=BEAR_LINES[Math.floor(Math.random()*BEAR_LINES.length)];b.classList.add('show');setTimeout(()=>b.classList.remove('show'),4200);}
+function startBear(){clearInterval(bearTimer);bearSay();bearTimer=setInterval(bearSay,9000);}
 const pp=new URLSearchParams(location.search);
 if(pp.get('preview')==='test'){session={username:'test',role:'player',test:true};sessionStorage.setItem(STORAGE.session,JSON.stringify(session));openSite();}
 else{try{const s=JSON.parse(sessionStorage.getItem(STORAGE.session)||'null');if(s?.username){session=s;openSite();}}catch{}}
