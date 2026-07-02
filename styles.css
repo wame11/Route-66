@@ -267,3 +267,48 @@ tbody tr:nth-child(1) td{font-weight:900;color:var(--orange-deep)}
   .map-scroll{padding:12px 8px}.map-track{padding:30px 24px}
   .level-node.up{margin-bottom:58px}.level-node.down{margin-top:58px}
 }
+
+/* ===== ARCADE v2: tabs, new engines, sprites ===== */
+.arcade-rule{margin:0 0 12px;padding:10px 12px;background:rgba(240,168,48,.18);border:2px dashed var(--orange);border-radius:var(--radius-sm);font-size:.85rem;font-weight:700;color:var(--ink)}
+.gm-tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px}
+.gm-tab{display:grid;gap:3px;padding:9px 6px;border:3px solid var(--asphalt);border-radius:12px;background:#fff7ea;box-shadow:0 3px 0 var(--asphalt);text-align:center}
+.gm-tab.active{background:linear-gradient(180deg,var(--gold),var(--mustard))}
+.gm-name{font-size:.68rem;font-weight:900;text-transform:uppercase;line-height:1.1}
+.gm-best{font-size:.72rem;font-weight:900;color:var(--orange-deep)}
+.game-hud{font-weight:900;margin:0 0 10px;color:var(--ink);font-size:.95rem;min-height:1.4em}
+.sprite{display:block;margin:0 auto;pointer-events:none}
+/* tap frenzy */
+.tap-arena{position:relative;height:300px;border:3px solid var(--asphalt);border-radius:var(--radius-sm);background:linear-gradient(180deg,#fbe7c2,#f2d9a8);overflow:hidden;touch-action:manipulation}
+.tap-target{position:absolute;width:72px;height:72px;border-radius:50%;border:4px solid var(--asphalt);background:radial-gradient(circle at 35% 30%,#fff,var(--gold));font-size:2rem;box-shadow:0 4px 0 var(--asphalt);transition:width .2s,height .2s}
+.tap-target:active{transform:scale(.9)}
+/* simon */
+.simon-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:340px;margin:0 auto}
+.simon-pad{aspect-ratio:1;border:4px solid var(--asphalt);border-radius:18px;box-shadow:0 5px 0 var(--asphalt);opacity:.55;transition:opacity .12s,transform .12s}
+.simon-pad.lit{opacity:1;transform:scale(1.05);box-shadow:0 5px 0 var(--asphalt),0 0 26px rgba(255,194,75,.9)}
+.simon-pad.p0{background:#e8651f}.simon-pad.p1{background:#5b2a6b}.simon-pad.p2{background:#f0a830}.simon-pad.p3{background:#5f8a4a}
+/* higher-lower + wheel + dice */
+.hl-card{width:110px;height:150px;margin:0 auto 14px;display:grid;place-items:center;font-size:3rem;font-weight:900;background:#fff;border:4px solid var(--asphalt);border-radius:14px;box-shadow:0 5px 0 var(--asphalt);color:var(--rust)}
+.hl-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.wheel-face{font-size:4.5rem;text-align:center;margin:0 0 14px;animation:bounce 2.4s ease-in-out infinite}
+.dice-row{min-height:64px;text-align:center;font-size:3rem;margin-bottom:12px;letter-spacing:6px;color:var(--asphalt)}
+.dice-row b{font-size:1rem;display:block;color:var(--purple)}
+.spin-btn{width:100%}
+/* whack cells: sprite fit */
+.whack-cell{display:grid;place-items:center;padding:4px}
+.whack-cell img{width:72%;height:72%}
+
+/* ===== MAP FIX: text no longer overlaps the road ===== */
+.level-node.up{margin-bottom:118px}
+.level-node.down{margin-top:118px}
+.level-title,.level-sub,.level-stars{position:relative;z-index:2}
+.level-title{background:rgba(255,250,240,.92);border:2px solid var(--asphalt);border-radius:999px;padding:3px 10px;box-shadow:0 2px 0 var(--asphalt)}
+.level-sub{background:rgba(36,26,34,.85);color:var(--gold);border-radius:999px;padding:2px 9px}
+@media(max-width:520px){.level-node.up{margin-bottom:96px}.level-node.down{margin-top:96px}}
+
+/* ===== CORNER MASCOT: everywhere, bottom-right, mobile/iPad safe ===== */
+.corner-mascot{position:fixed;right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));z-index:60;pointer-events:none;filter:drop-shadow(0 4px 6px rgba(59,26,71,.35));animation:mascotbob 2.2s ease-in-out infinite}
+@keyframes mascotbob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-6px) rotate(2deg)}}
+.corner-mascot .wheel{transform-origin:29px 57px;animation:wheelspin 1s linear infinite}
+.corner-mascot .w2{transform-origin:89px 57px}
+@keyframes wheelspin{to{transform:rotate(360deg)}}
+@media(max-width:520px){.corner-mascot svg{width:64px;height:38px}}
