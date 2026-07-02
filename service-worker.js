@@ -1,4 +1,4 @@
-const CACHE_NAME = 'route66-v2';
+const CACHE_NAME = 'route66-v3';
 const ASSETS = [
   './',
   './index.html',
