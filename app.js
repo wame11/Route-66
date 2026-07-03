@@ -1,6 +1,7 @@
+/* ===== Route 66 Family Challenge — ARCADE EDITION ===== */
 const ACCOUNTS={
-  Jacob:{role:'player',hash:'8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92'},
-  Lily:{role:'player',hash:'481f6cc0511143ccdd7e2d1b1b94faf0a700a8b49cd13922a70b5ae28acaa8c5'},
+  Jacob:{role:'player',hash:'03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4'},
+  Lily:{role:'player',hash:'fe2592b42a727e977f055947385b709cc82b16b9a87f88c6abf3900d65d0cdc3'},
   Hannah:{role:'player',hash:'9975baa75e1603273cbd3d94746a0442e22d5dc0268750dd45229f343f53fe19'},
   Ethan:{role:'player',hash:'08f61ac43fc9a9d5bd3d41f6dc2976ad27d8d5d8422e2ac87c12b98364a331fe'},
   admin:{role:'admin',hash:'7f3d56bb44da1a1f5239ac9db712488db90f135d999290ed9104eba8691096e2'}
@@ -28,14 +29,14 @@ const els={
 };
 
 /* ---------- storage ---------- */
-function freshProgress(){return {completed:{},submitted:{},photos:{},hunt:{},huntPhotos:{},game:{},quiz:{},points:{}};}
+function freshProgress(){return {completed:{},submitted:{},photos:{},hunt:{},huntPhotos:{},game:{},quiz:{},points:{},chips:25,chipGrant:{}};}
 function freshShared(){return {submissions:[],updatedAt:null};}
 function readJson(k,f=null){try{const v=localStorage.getItem(k);return v?JSON.parse(v):f;}catch{return f;}}
 function writeJson(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch{return false;}}
 function progressKey(){return STORAGE.progressPrefix+(session?.username||'guest');}
 function loadProgress(){progress=mergeProgress(readJson(progressKey(),null));}
 function saveProgress(){if(session?.role!=='admin'&&!writeJson(progressKey(),progress)){alert('Phone storage is full — oldest photos may not save. Ask Ethan to sync!');}}
-function mergeProgress(s){const m=freshProgress();if(!s||typeof s!=='object')return m;Object.keys(m).forEach(k=>{m[k]=s[k]&&typeof s[k]==='object'?s[k]:m[k];});return m;}
+function mergeProgress(s){const m=freshProgress();if(!s||typeof s!=='object')return m;Object.keys(m).forEach(k=>{if(k==='chips'){m.chips=Number.isFinite(s.chips)?s.chips:25;}else{m[k]=s[k]&&typeof s[k]==='object'?s[k]:m[k];}});return m;}
 function loadShared(){shared=normaliseShared(readJson(STORAGE.shared,freshShared()));}
 function saveShared(){shared.updatedAt=new Date().toISOString();writeJson(STORAGE.shared,shared);}
 
@@ -140,7 +141,7 @@ function renderHome(){
     els.hudAvatar.textContent=AVATARS[session.username]||'🚗';
     els.hudFill.style.width=pct+'%';
     els.hudCaption.textContent=done+' / '+STOPS.length+' stops cleared · '+pct+'%';
-    els.hudScore.textContent=playerPoints(session.username);
+    els.hudScore.textContent=playerPoints(session.username);updateChips();
   }else els.mapProgress.textContent='Admin view — approve missions below.';
 }
 function renderMap(){
@@ -285,7 +286,10 @@ function reportScore(root,stop,gi,score,won){
   const cur=st.perGame[gi]||{best:0,won:false};
   st.perGame[gi]={best:Math.max(cur.best,score),won:cur.won||won};
   st.complete=Object.values(st.perGame).some(g=>g.won);
-  progress.game[stop.id]=st;saveProgress();refreshTaskTags(root,stop);
+  progress.game[stop.id]=st;
+  const gk=stop.id+'-'+gi;
+  if(won&&!progress.chipGrant[gk]){progress.chipGrant[gk]=true;progress.chips=(progress.chips||0)+10;updateChips();bearShout('+10 chips! Come gamble them with me! 🐻🪙');}
+  saveProgress();refreshTaskTags(root,stop);
   const badge=root.querySelector('.gm-tab[data-gi="'+gi+'"] .gm-best');
   if(badge)badge.textContent=st.perGame[gi].best+(st.perGame[gi].won?' 🏆':'');
   if(won)burst(root.querySelector('.arcade'));
@@ -673,7 +677,7 @@ async function submitStop(stop,index,cs,root){
   const photo=progress.photos[stop.id]||{};
   const sub={id:session.username+'-'+stop.id+'-'+Date.now(),username:session.username,stopId:stop.id,stopTitle:stop.title,day:stop.day,hotel:stop.hotel,
     score:SCORE_PER_STOP,bonus:0,status:'pending',submittedAt:new Date().toISOString(),updatedAt:new Date().toISOString(),
-    proofName:photo.name||'',proofImage:photo.dataUrl||'',activity:arcadeSummary(stop),suggestBonus:suggestedBonus(stop)};
+    proofName:photo.name||'',proofImage:photo.dataUrl||'',activity:arcadeSummary(stop)+' \u00b7 Chips: '+(progress.chips||0),suggestBonus:suggestedBonus(stop)};
   const i=shared.submissions.findIndex(x=>x.username===sub.username&&x.stopId===sub.stopId&&x.status==='pending');
   if(i>=0)shared.submissions[i]=sub;else shared.submissions.push(sub);
   saveShared();
@@ -773,7 +777,7 @@ async function doLogin(name,password){
 }
 async function openSite(){
   loadProgress();loadShared();
-  els.login.classList.add('hidden');els.site.classList.remove('hidden');document.getElementById('cornerMascot')?.classList.remove('hidden');startBear();
+  els.login.classList.add('hidden');els.site.classList.remove('hidden');document.getElementById('cornerMascot')?.classList.remove('hidden');startBear();wireBear();
   showHome();
   if(countdownTimer)clearInterval(countdownTimer);
   countdownTimer=setInterval(renderCountdown,30000);
@@ -803,11 +807,16 @@ function jackpot(done){
   const rain=setInterval(()=>{for(let i=0;i<6;i++){const s=document.createElement('span');s.className='jp-coin';s.textContent=EM[Math.floor(Math.random()*EM.length)];
     s.style.left=Math.random()*100+'vw';s.style.animationDuration=(1.6+Math.random()*1.8)+'s';s.style.fontSize=(1.2+Math.random()*2)+'rem';
     o.appendChild(s);setTimeout(()=>s.remove(),3600);}},130);
-  /* money counter rolls up to 1,000,000 over ~7s */
+  /* money counter rolls up to 1,000,000 over ~6s... then reality hits */
   const cEl=o.querySelector('.jp-count b');const t0=Date.now();
-  const count=setInterval(()=>{const p=Math.min(1,(Date.now()-t0)/7000);
+  const count=setInterval(()=>{const p=Math.min(1,(Date.now()-t0)/6000);
     cEl.textContent=Math.floor(1000000*p*p).toLocaleString();
-    if(p>=1)clearInterval(count);},50);
+    if(p>=1){clearInterval(count);
+      setTimeout(()=>{o.querySelector('.jp-count').classList.add('crash');cEl.textContent='15';
+        o.querySelector('.jp-title').textContent='OK... $15';
+        o.querySelector('.jp-sub').textContent='TO SPEND IN CALIFORNIA 🌴';
+      },900);}
+  },50);
   /* reels land one by one */
   const reels=[...o.querySelectorAll('.jp-reels span')];
   reels.forEach((r,i)=>{r.classList.add('spin');setTimeout(()=>{r.classList.remove('spin');r.classList.add('land');},900+i*800);});
@@ -816,11 +825,75 @@ function jackpot(done){
   /* end after 10s */
   setTimeout(()=>{clearInterval(rain);o.classList.add('out');setTimeout(()=>{o.remove();if(done)done();},600);},10000);
 }
+function updateChips(){const el=document.getElementById('hudChips');if(el)el.textContent=(progress.chips||0);const d=document.querySelector('.den-balance b');if(d)d.textContent=(progress.chips||0);}
+function bearShout(msg){const b=document.getElementById('bearBubble');if(!b)return;b.textContent=msg;b.classList.add('show');clearTimeout(bearShout._t);bearShout._t=setTimeout(()=>b.classList.remove('show'),4200);}
 /* talking bear mascot */
-const BEAR_LINES=['Let\u2019s hit the road! \ud83d\udea6','Beat my high score\u2026 if you can!','Snap those photos! \ud83d\udcf8','Route 66, here we come!','I smell snacks\u2026 \ud83c\udf6b','Don\u2019t poke the burros!','Tap the glowing stop!','Grrreat driving, team!','Are we there yet? \ud83d\ude02','Watch out for meteors! \u2604\ufe0f','I bet Lily wins this one\u2026','Jacob, is that your best score?!','Bears LOVE scavenger hunts.','The Grand Canyon is GRRRAND.','Vegas lights, here I come! \ud83c\udfb0','Don\u2019t feed me\u2026 feed the leaderboard!','5 games per stop \u2014 beat them ALL!','Hannah\u2019s coming for first place!','Ethan built all this. Show off. \ud83d\ude0f','Photo of EVERY hunt item, no cheating!','My cousin lives at Bearizona!','Fastest paws in the West. \ud83d\udc3e','Bonus points for extra wins!','Horseshoe Bend \u2014 stay back from the edge!','I call shotgun! \ud83d\ude97','Winner gets\u2026 my respect. And points.','Simon says\u2026 tap faster!','Jackpot!! Oh wait, wrong game.','Stretch those tapping fingers!','11 hours on a plane? Wake me in LA.'];
+const BEAR_LINES=['Let\u2019s hit the road! \ud83d\udea6','Beat my high score\u2026 if you can!','Snap those photos! \ud83d\udcf8','Route 66, here we come!','I smell snacks\u2026 \ud83c\udf6b','Don\u2019t poke the burros!','Tap the glowing stop!','Grrreat driving, team!','Are we there yet? \ud83d\ude02','Watch out for meteors! \u2604\ufe0f','I bet Lily wins this one\u2026','Jacob, is that your best score?!','Bears LOVE scavenger hunts.','The Grand Canyon is GRRRAND.','Vegas lights, here I come! \ud83c\udfb0','Don\u2019t feed me\u2026 feed the leaderboard!','5 games per stop \u2014 beat them ALL!','Hannah\u2019s coming for first place!','Ethan built all this. Show off. \ud83d\ude0f','Photo of EVERY hunt item, no cheating!','My cousin lives at Bearizona!','Fastest paws in the West. \ud83d\udc3e','Bonus points for extra wins!','Horseshoe Bend \u2014 stay back from the edge!','I call shotgun! \ud83d\ude97','Winner gets\u2026 my respect. And points.','Simon says\u2026 tap faster!','Jackpot!! Oh wait, wrong game.','Stretch those tapping fingers!','11 hours on a plane? Wake me in LA.','TAP ME to visit my Bonus Den! \ud83c\udfb0','Feeling lucky? Tap me and find out!','My den. Your chips. One tap. \ud83d\udc3b','Double or nothing? Tap the bear!','I never lose at dice. Prove me wrong.','The wheel loves gold... usually.','Scared to gamble? Chicken! \ud83d\udc14','Win 10 chips every arcade game you beat!','House always wins. I AM the house.','All-in? You maniac. I respect it.','Psst\u2026 tap me. First flip\u2019s free-ish.','Chips buy glory, not sweets. Sorry.','A wise bear once said: one more spin.','Vegas rules: what happens in the den stays in the den.'];
 let bearTimer=null,bearIdx=-1;
 function bearSay(){const b=document.getElementById('bearBubble');if(!b)return;let i;do{i=Math.floor(Math.random()*BEAR_LINES.length);}while(i===bearIdx);bearIdx=i;b.textContent=BEAR_LINES[i];b.classList.add('show');setTimeout(()=>b.classList.remove('show'),4600);}
-function startBear(){clearInterval(bearTimer);setTimeout(bearSay,800);bearTimer=setInterval(bearSay,5500);}
+function wireBear(){const m=document.getElementById('cornerMascot');
+  if(m&&!m.dataset.wired){m.dataset.wired='1';m.style.pointerEvents='auto';m.style.cursor='pointer';
+    m.addEventListener('click',e=>{e.preventDefault();openDen();});}}
+function startBear(){clearInterval(bearTimer);setTimeout(bearSay,800);bearTimer=setInterval(bearSay,5000);wireBear();}
+/* ===== BEAR'S BONUS DEN — gamble your chips ===== */
+let denWager=5;
+function openDen(){
+  if(isAdmin()){bearShout('Admins don\u2019t gamble. House rules!');return;}
+  if(document.querySelector('.den'))return;
+  const o=document.createElement('div');o.className='den';
+  o.innerHTML='<div class="den-card">'+
+    '<button type="button" class="den-close">\u2715</button>'+
+    '<div class="den-head">\ud83d\udc3b BEAR\u2019S BONUS DEN</div>'+
+    '<div class="den-balance">\ud83e\ude99 Chips: <b>'+(progress.chips||0)+'</b></div>'+
+    '<div class="den-wager">Bet: '+[5,10,25].map(v=>'<button type="button" class="den-bet" data-v="'+v+'">'+v+'</button>').join('')+'<button type="button" class="den-bet" data-v="all">ALL IN</button></div>'+
+    '<div class="den-games">'+
+      '<div class="den-game"><h4>\ud83e\ude99 Coin Flip \u00d72</h4><div class="den-coin">?</div><div class="den-row"><button type="button" class="btn btn-primary den-flip" data-p="H">Heads</button><button type="button" class="btn btn-secondary den-flip" data-p="T">Tails</button></div></div>'+
+      '<div class="den-game"><h4>\ud83c\udfb2 Beat the Bear \u00d72</h4><div class="den-dice"><span class="d-you">\u2680</span><span class="d-vs">vs</span><span class="d-bear">\u2680</span></div><div class="den-row"><button type="button" class="btn btn-primary den-roll">Roll!</button></div></div>'+
+      '<div class="den-game"><h4>\ud83c\udfa1 Lucky Wheel</h4><div class="den-wheel">\ud83c\udfa1</div><div class="den-row"><button type="button" class="btn btn-primary den-spin" data-c="gold">\ud83d\udfe1 \u00d72</button><button type="button" class="btn btn-secondary den-spin" data-c="purple">\ud83d\udfe3 \u00d73</button><button type="button" class="btn btn-danger den-spin" data-c="red">\ud83d\udd34 \u00d75</button></div></div>'+
+    '</div>'+
+    '<p class="den-msg">Pick a bet, then play. Beat every arcade game for +10 chips each!</p>'+
+  '</div>';
+  document.body.appendChild(o);
+  const msg=o.querySelector('.den-msg');
+  const bets=[...o.querySelectorAll('.den-bet')];
+  function setBet(b){bets.forEach(x=>x.classList.toggle('on',x===b));denWager=b.dataset.v;}
+  bets.forEach(b=>b.addEventListener('click',()=>setBet(b)));setBet(bets[0]);
+  function stake(){const c=progress.chips||0;const w=denWager==='all'?c:Math.min(Number(denWager),c);
+    if(w<=0){msg.textContent='No chips! Beat an arcade game (+10) and come back.';return 0;}
+    return w;}
+  function settle(win,w,mult,label){
+    progress.chips=(progress.chips||0)-w+(win?w*mult:0);saveProgress();updateChips();
+    msg.textContent=win?('\ud83c\udf89 '+label+' You win '+(w*mult-w)+' chips!'):('\ud83d\udc80 '+label+' Lost '+w+' chips.');
+    burst(o.querySelector('.den-card'));if(!win)o.querySelector('.den-card').classList.add('shake'),setTimeout(()=>o.querySelector('.den-card').classList.remove('shake'),400);
+    bearShout(win?'NOO! My chips! \ud83d\ude2d':'The house thanks you. \ud83d\ude0f');}
+  /* coin flip */
+  let busy=false;
+  o.querySelectorAll('.den-flip').forEach(b=>b.addEventListener('click',()=>{
+    if(busy)return;const w=stake();if(!w)return;busy=true;
+    const coin=o.querySelector('.den-coin');coin.classList.add('flip');let t=0;
+    const iv=setInterval(()=>{coin.textContent=Math.random()<0.5?'H':'T';if(++t>=12){clearInterval(iv);coin.classList.remove('flip');
+      const res=Math.random()<0.5?'H':'T';coin.textContent=res;settle(res===b.dataset.p,w,2,'Coin says '+res+'.');busy=false;}},100);}));
+  /* dice */
+  const DIE=['\u2680','\u2681','\u2682','\u2683','\u2684','\u2685'];
+  o.querySelector('.den-roll').addEventListener('click',()=>{
+    if(busy)return;const w=stake();if(!w)return;busy=true;
+    const y=o.querySelector('.d-you'),br=o.querySelector('.d-bear');let t=0;
+    const iv=setInterval(()=>{y.textContent=DIE[Math.floor(Math.random()*6)];br.textContent=DIE[Math.floor(Math.random()*6)];
+      if(++t>=10){clearInterval(iv);const a=1+Math.floor(Math.random()*6),b2=1+Math.floor(Math.random()*6);
+        y.textContent=DIE[a-1];br.textContent=DIE[b2-1];
+        if(a===b2){msg.textContent='Tie! Bet returned.';busy=false;return;}
+        settle(a>b2,w,2,'You '+a+' vs Bear '+b2+'.');busy=false;}},90);});
+  /* wheel: gold p=3/6 x2, purple 2/6 x3, red 1/6 x5 */
+  const POCKETS=['gold','gold','gold','purple','purple','red'],FACE={gold:'\ud83d\udfe1',purple:'\ud83d\udfe3',red:'\ud83d\udd34'};
+  o.querySelectorAll('.den-spin').forEach(b=>b.addEventListener('click',()=>{
+    if(busy)return;const w=stake();if(!w)return;busy=true;
+    const wh=o.querySelector('.den-wheel');let t=0;
+    const iv=setInterval(()=>{wh.textContent=FACE[POCKETS[Math.floor(Math.random()*6)]];
+      if(++t>=14){clearInterval(iv);const res=POCKETS[Math.floor(Math.random()*6)];wh.textContent=FACE[res];
+        settle(res===b.dataset.c,w,{gold:2,purple:3,red:5}[b.dataset.c],'Landed '+res+'.');busy=false;}},90);}));
+  o.querySelector('.den-close').addEventListener('click',()=>o.remove());
+  o.addEventListener('click',e=>{if(e.target===o)o.remove();});
+}
 const pp=new URLSearchParams(location.search);
 if(pp.get('preview')==='test'){session={username:'test',role:'player',test:true};sessionStorage.setItem(STORAGE.session,JSON.stringify(session));openSite();}
 else{try{const s=JSON.parse(sessionStorage.getItem(STORAGE.session)||'null');if(s?.username){session=s;openSite();}}catch{}}
