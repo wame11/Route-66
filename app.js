@@ -7,7 +7,7 @@ const ACCOUNTS={
   admin:{role:'admin',hash:'7f3d56bb44da1a1f5239ac9db712488db90f135d999290ed9104eba8691096e2'}
 };
 /* Paste your Google Apps Script /exec URL into sheetEndpoint to sync across devices. */
-const CONFIG={sheetEndpoint:'https://script.google.com/macros/s/AKfycbx_qOmtVWPm7BuClVf1Yj-w4pV7OyWgEzxntc89hgxNeQ9FB-acd6j5NcC0rO7wgkGy/exec',sheetUrl:''};
+const CONFIG={sheetEndpoint:'https://script.google.com/macros/s/AKfycbx_qOmtVWPm7BuClVf1Yj-w4pV7OyWgEzxntc89hgxNeQ9FB-acd6j5NcC0rO7wgkGy/exec',sheetUrl:'',youtubeKey:'AIzaSyC97QvLqWtLZ339RY01Zfv2ghEVJWr14TE'};
 /* Departure: 12 Aug 2026, 11:40 UK time (BST = UTC+1) */
 const DEPARTURE=Date.UTC(2026,7,12,10,40,0);
 const SCORE_PER_STOP=100;
@@ -34,7 +34,7 @@ function freshShared(){return {submissions:[],updatedAt:null,players:[]};}
 function readJson(k,f=null){try{const v=localStorage.getItem(k);return v?JSON.parse(v):f;}catch{return f;}}
 function writeJson(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch{return false;}}
 function progressKey(){return STORAGE.progressPrefix+(session?.username||'guest');}
-function loadProgress(){progress=mergeProgress(readJson(progressKey(),null));}
+function loadProgress(){progress=mergeProgress(readJson(progressKey(),null));if(session&&session.test)progress.chips=999999;}
 function saveProgress(){if(session?.role!=='admin'&&!writeJson(progressKey(),progress)){alert('Phone storage is full — oldest photos may not save. Ask Ethan to sync!');}}
 function mergeProgress(s){const m=freshProgress();if(!s||typeof s!=='object')return m;Object.keys(m).forEach(k=>{if(k==='chips'){m.chips=Number.isFinite(s.chips)?s.chips:25;}else{m[k]=s[k]&&typeof s[k]==='object'?s[k]:m[k];}});return m;}
 function loadShared(){shared=normaliseShared(readJson(STORAGE.shared,freshShared()));}
@@ -1163,7 +1163,7 @@ function char(){progress.char=progress.char||{owned:{skin_light:1,hair_short_bro
   equip:{Body:'skin_light',Hair:'hair_short_brown',Outfit:'shirt_red',Hat:'hat_none',Face:'acc_none',Pet:'pet_none'}};return progress.char;}
 function equipped(cat){const it=SHOP_ITEMS.find(i=>i.id===char().equip[cat]);return it||SHOP_ITEMS.find(i=>i.cat===cat);}
 function avatarSVG(){
-  const body=equipped('Body'),hair=equipped('Hair'),out=equipped('Outfit'),hat=equipped('Hat'),face=equipped('Face'),pet=equipped('Pet');
+  const body=equippedView('Body'),hair=equippedView('Hair'),out=equippedView('Outfit'),hat=equippedView('Hat'),face=equippedView('Face'),pet=equippedView('Pet');
   const skin=body.skin||'#e0ac69';
   const shirtFill=out.shirt==='rainbow'?'url(#rainbowg)':(out.shirt||'#e0654f');
   let hairEl='';
@@ -1197,9 +1197,49 @@ function avatarSVG(){
     '<path d="M80 92c4 5 16 5 20 0" fill="none" stroke="#241a22" stroke-width="3" stroke-linecap="round"/>'+
     hairEl+faceEl+hatEl+'</svg>';
 }
+let previewItem=null; /* item being tried on but not owned */
+/* 3D stage: idle spin + drag to rotate, Fortnite-locker style */
+let charRot=0,charDrag=null,charIdle=null;
+function wireCharStage(){
+  const box=document.getElementById('charAvatar');if(!box||box.dataset.wired)return;box.dataset.wired='1';
+  clearInterval(charIdle);
+  charIdle=setInterval(()=>{if(charDrag===null){charRot+=0.35;applyCharRot();}},50);
+  box.addEventListener('pointerdown',e=>{e.preventDefault();charDrag=e.clientX;try{box.setPointerCapture(e.pointerId);}catch(_){/**/}});
+  box.addEventListener('pointermove',e=>{if(charDrag===null)return;charRot+=(e.clientX-charDrag)*0.6;charDrag=e.clientX;applyCharRot();});
+  box.addEventListener('pointerup',()=>charDrag=null);
+  box.addEventListener('pointerleave',()=>charDrag=null);
+  box.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
+}
+function applyCharRot(){
+  const box=document.getElementById('charAvatar');if(!box)return;
+  const r=((charRot%360)+360)%360;
+  const flip=(r>90&&r<270)?-1:1; /* fake 3D: mirror past the side */
+  const squash=Math.abs(Math.cos(r*Math.PI/180));
+  box.style.transform='perspective(700px) rotateY('+(r>90&&r<270?180-r:r>=270?r-360:r)*0.35+'deg) scaleX('+(0.4+0.6*squash)*flip+')';
+}
+function equippedView(cat){
+  if(previewItem&&previewItem.cat===cat)return previewItem;
+  return equipped(cat);
+}
+function playerTitle(){
+  const t=totalEarned();
+  return t>=1000?'🌟 66 MASTER':t>=500?'🏜️ Desert Legend':t>=200?'🛣️ Route Runner':'🚗 Rookie Roadtripper';
+}
 function renderCharacter(){
-  const box=document.getElementById('charAvatar');if(box)box.innerHTML=avatarSVG();
-  const cc=document.getElementById('charChips');if(cc)cc.textContent=(progress.chips||0);
+  const box=document.getElementById('charAvatar');
+  if(box){box.innerHTML=avatarSVG();box.classList.toggle('previewing',!!previewItem);}
+  const cc=document.getElementById('charChips');if(cc)cc.textContent=session&&session.test?'∞':(progress.chips||0);
+  const nm=document.getElementById('charName');if(nm)nm.textContent=(session?session.username:'')+' · '+playerTitle();
+  const bar=document.getElementById('charBuyBar');
+  if(bar){
+    if(previewItem){bar.classList.remove('hidden');
+      bar.innerHTML='<span>Trying on: <b>'+previewItem.name+'</b></span>'+
+        '<button type="button" class="btn btn-primary char-buy">🪙 Buy for '+previewItem.price+'</button>'+
+        '<button type="button" class="btn btn-quiet char-cancel">Cancel</button>';
+      bar.querySelector('.char-buy').addEventListener('click',()=>{const it=previewItem;previewItem=null;buyOrWear(it.id);});
+      bar.querySelector('.char-cancel').addEventListener('click',()=>{previewItem=null;renderCharacter();renderShop();sfx('click');});
+    } else bar.classList.add('hidden');
+  }
 }
 let shopCat='Hair';
 function renderShop(){
@@ -1208,20 +1248,28 @@ function renderShop(){
   tabs.querySelectorAll('.shop-tab').forEach(b=>b.addEventListener('click',()=>{shopCat=b.dataset.c;renderShop();}));
   const owned=char().owned,equip=char().equip;
   grid.innerHTML=SHOP_ITEMS.filter(i=>i.cat===shopCat).map(i=>{
-    const have=owned[i.id],on=equip[i.cat]===i.id;
-    return '<div class="shop-item rar-'+i.rar+(on?' equipped':'')+'">'+
+    const have=owned[i.id],on=equip[i.cat]===i.id,pv=previewItem&&previewItem.id===i.id;
+    return '<div class="shop-item rar-'+i.rar+(on?' equipped':'')+(pv?' previewing':'')+'">'+
       '<div class="shop-rar">'+RAR_LABEL[i.rar]+'</div>'+
       '<div class="shop-name">'+i.name+'</div>'+
-      '<button type="button" class="shop-act" data-id="'+i.id+'">'+(on?'Wearing ✓':have?'Wear':('🪙 '+i.price))+'</button></div>';
+      '<button type="button" class="shop-act" data-id="'+i.id+'">'+(on?'Wearing ✓':have?'Wear':(i.price>0?('👀 Try · 🪙 '+i.price):'Wear'))+'</button></div>';
   }).join('');
-  grid.querySelectorAll('.shop-act').forEach(b=>b.addEventListener('click',()=>buyOrWear(b.dataset.id)));
+  grid.querySelectorAll('.shop-act').forEach(b=>b.addEventListener('click',()=>tryOrWear(b.dataset.id)));
+}
+function tryOrWear(id){
+  const it=SHOP_ITEMS.find(i=>i.id===id);if(!it)return;const c=char();
+  if(c.owned[id]){previewItem=null;c.equip[it.cat]=id;saveProgress();renderCharacter();renderShop();syncPlayer();sfx('click');return;}
+  /* not owned: try it on first — SEE it before you buy */
+  previewItem=it;renderCharacter();renderShop();sfx('click');
+  bearShout('Looking good! Buy it or keep browsing. 🐻');
 }
 function buyOrWear(id){
   const it=SHOP_ITEMS.find(i=>i.id===id);if(!it)return;const c=char();
   if(!c.owned[id]){
-    if((progress.chips||0)<it.price){bearShout('Not enough chips! Go win some. 🐻');return;}
-    if(it.price>0 && !confirm('Spend '+it.price+' chips on '+it.name+'?\n\nRemember: chips can win you REAL money (the £15 shop dash) — spend them on outfits only if you\u2019re sure!')) return;
-    progress.chips-=it.price;c.owned[id]=1;sfx('coin');bearCelebrate('Nice '+it.name+'! Looking good! 🐻');
+    if(!(session&&session.test)&&(progress.chips||0)<it.price){bearShout('Not enough chips! Go win some. 🐻');previewItem=null;renderCharacter();renderShop();return;}
+    if(it.price>0 && !confirm('Spend '+it.price+' chips on '+it.name+'?\n\nRemember: chips can win you REAL money (the £15 shop dash) — spend them on outfits only if you\u2019re sure!')) {previewItem=null;renderCharacter();renderShop();return;}
+    if(!(session&&session.test))progress.chips-=it.price;
+    c.owned[id]=1;sfx('coin');bearCelebrate('Nice '+it.name+'! Looking good! 🐻');
   }
   c.equip[it.cat]=id;saveProgress();updateChips();renderCharacter();renderShop();syncPlayer();sfx('click');
 }
@@ -1383,7 +1431,7 @@ function showView(id){
   document.querySelectorAll('.vtab').forEach(b=>b.classList.toggle('active',b.dataset.view===id));
   if(id==='gamesView')renderHub();
   if(id==='postView')renderPostcards();
-  if(id==='charView'){renderCharacter();renderShop();renderSeason();}
+  if(id==='charView'){renderCharacter();renderShop();renderSeason();wireCharStage();}
   if(id==='homeView')renderHome();
   window.scrollTo(0,0);
 }
@@ -1692,17 +1740,30 @@ function hubHeist(body){
   activeGame={stop(){}};
 }
 
-/* ---- MUSIC: embedded YouTube player, stays in the app ---- */
-function playSong(q){
+/* ---- MUSIC: in-app player. iTunes preview (no key) or full YouTube (with free key) ---- */
+async function playSong(q){
   q=(q||'').trim();if(!q)return;
-  const frame=document.getElementById('musicFrame'),note=document.getElementById('musicNote'),link=document.getElementById('musicOpen');
-  if(!frame)return;
-  const query=encodeURIComponent(q+' lyrics');
-  // YouTube search-embed: plays the top result inline
-  frame.src='https://www.youtube.com/embed?listType=search&list='+query+'&autoplay=1&rel=0';
-  frame.classList.remove('hidden');
-  if(note)note.textContent='▶️ Playing top result for "'+q+'". Needs internet.';
-  if(link){link.href='https://www.youtube.com/results?search_query='+query;link.classList.remove('hidden');}
+  const wrap=document.getElementById('musicPlayerBox');if(!wrap)return;
+  wrap.innerHTML='<p class="music-note">🔎 Finding "'+escapeHtml(q)+'"…</p>';
+  if(CONFIG.youtubeKey){
+    try{
+      const r=await fetch('https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q='+encodeURIComponent(q+' lyrics')+'&key='+CONFIG.youtubeKey);
+      const d=await r.json();const vid=d.items&&d.items[0]&&d.items[0].id.videoId;
+      if(vid){wrap.innerHTML='<iframe class="music-frame" src="https://www.youtube.com/embed/'+vid+'?autoplay=1&rel=0" allow="autoplay; encrypted-media" allowfullscreen frameborder="0"></iframe>';return;}
+    }catch(_){/* fall through */}
+  }
+  try{
+    const r=await fetch('https://itunes.apple.com/search?media=music&limit=1&term='+encodeURIComponent(q));
+    const d=await r.json();const t=d.results&&d.results[0];
+    if(t&&t.previewUrl){
+      wrap.innerHTML='<div class="music-card"><img class="music-art" src="'+t.artworkUrl100.replace('100x100','300x300')+'" alt="">'+
+        '<div class="music-meta"><b>'+escapeHtml(t.trackName)+'</b><span>'+escapeHtml(t.artistName)+'</span>'+
+        '<audio controls autoplay src="'+t.previewUrl+'"></audio>'+
+        '<span class="music-small">30-sec preview · <a href="https://www.youtube.com/results?search_query='+encodeURIComponent(q+' lyrics')+'" target="_blank" rel="noopener">full song on YouTube ↗</a></span></div></div>';
+      return;
+    }
+  }catch(_){/**/}
+  wrap.innerHTML='<p class="music-note">Couldn\u2019t find that one — check spelling or <a href="https://www.youtube.com/results?search_query='+encodeURIComponent(q)+'" target="_blank" rel="noopener">search YouTube ↗</a></p>';
 }
 document.getElementById('musicBtn')?.addEventListener('click',()=>playSong(document.getElementById('musicInput').value));
 document.getElementById('musicInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')playSong(e.target.value);});
