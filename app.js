@@ -295,6 +295,18 @@ function reportScore(root,stop,gi,score,won){
   if(won)burst(root.querySelector('.arcade'));
 }
 const TARGETS={runner:400,catch:15,whack:15,dodge:30,timing:5,tap:40,memory:2,simon:6,hl:5,reels:20,wheel:20,dice21:20};
+const INSTR={runner:'Tap anywhere to start, tap to JUMP over obstacles. One crash ends the run — it gets faster!',
+catch:'Tap to start, then SLIDE your finger to move the catcher. Catch the good stuff, avoid the bad. 3 lives!',
+whack:'Tap any square to start. Tap the targets FAST when they pop up — don\u2019t tap decoys, don\u2019t let them escape. 3 lives!',
+dodge:'Tap to start, SLIDE to dodge everything falling. It speeds up. 3 lives!',
+timing:'Tap SNAP when the white marker is inside the gold zone. 3 misses and you\u2019re out — the zone shrinks!',
+tap:'Tap the moving target as many times as you can in 30 seconds. Missing costs a second!',
+memory:'Flip cards to find matching pairs. Clear the whole board before the timer — each round gets faster!',
+simon:'Watch the pads light up, then repeat the sequence by tapping them in order. One wrong tap ends it!',
+hl:'Guess if the next card is HIGHER or LOWER (2 low, Ace high). Build your streak — one wrong guess ends it!',
+reels:'Tap SPIN (costs 1 chip). Match 2 symbols = +4, all 3 = JACKPOT +20. Run out = new stack.',
+wheel:'Bet a chip on a colour: gold pays \u00d72 (likely), purple \u00d73, red \u00d75 (rare). Reach the goal!',
+dice21:'Roll dice toward 21 without going bust, or STICK to beat the bank\u2019s roll. Hit exactly 21 = +8 chips!'};
 function targetText(t,v){return {runner:'Score '+v,catch:'Catch '+v,whack:'Bop '+v,dodge:'Survive '+v+'s',timing:v+' perfect snaps',tap:v+' taps in 30s',memory:'Clear '+v+' rounds',simon:'Sequence of '+v,hl:'Streak of '+v,reels:'Reach '+v+' chips',wheel:'Reach '+v+' chips',dice21:'Reach '+v+' chips'}[t];}
 function renderArcade(root,stop){
   const host=root.querySelector('.arcade');
@@ -307,7 +319,7 @@ function renderArcade(root,stop){
   function open(i){
     stopGame();host.querySelectorAll('.gm-tab').forEach(b=>b.classList.toggle('active',+b.dataset.gi===i));
     const g=games[i];const target=g.o.target||TARGETS[g.t];
-    goal.innerHTML='🎯 <b>'+targetText(g.t,target)+'</b> to win · endless after that!';
+    goal.innerHTML='🎯 <b>'+targetText(g.t,target)+'</b> to win · endless after that!<br><span class="arcade-instr">📖 '+INSTR[g.t]+'</span>';
     stage.innerHTML='';
     activeGame=engines[g.t](stage,{...g.o,target,title:g.n},(score,won)=>reportScore(root,stop,i,score,won));
   }
@@ -677,12 +689,12 @@ async function submitStop(stop,index,cs,root){
   const photo=progress.photos[stop.id]||{};
   const sub={id:session.username+'-'+stop.id+'-'+Date.now(),username:session.username,stopId:stop.id,stopTitle:stop.title,day:stop.day,hotel:stop.hotel,
     score:SCORE_PER_STOP,bonus:0,status:'pending',submittedAt:new Date().toISOString(),updatedAt:new Date().toISOString(),
-    proofName:photo.name||'',proofImage:photo.dataUrl||'',activity:arcadeSummary(stop)+' \u00b7 Chips: '+(progress.chips||0),suggestBonus:suggestedBonus(stop)};
+    proofName:photo.name||'',proofImage:photo.dataUrl||'',activity:arcadeSummary(stop),chips:Number(progress.chips||0),suggestBonus:suggestedBonus(stop)};
   const i=shared.submissions.findIndex(x=>x.username===sub.username&&x.stopId===sub.stopId&&x.status==='pending');
   if(i>=0)shared.submissions[i]=sub;else shared.submissions.push(sub);
   saveShared();
   progress.submitted[stop.id]={id:sub.id,status:'pending'};saveProgress();
-  cs.textContent='Mission sent to the boss! 🎉';burst(root);
+  cs.textContent='Mission sent to the boss! 🎉';burst(root);bearCelebrate('MISSION COMPLETE! Legend! 🏆');
   await postRemote({action:'submit',submission:sub});
   setTimeout(showHome,900);
 }
@@ -708,14 +720,30 @@ function renderAdminPanel(){
   });
   els.adminEmpty.classList.toggle('hidden',pending.length>0);
 }
+function chipStandings(){
+  const latest=new Map();
+  [...shared.submissions].sort((a,b)=>timestamp(a.updatedAt)-timestamp(b.updatedAt)).forEach(i=>{if(i.username)latest.set(i.username,Number(i.chips||0));});
+  if(session&&!isAdmin()&&!session.test)latest.set(session.username,Number(progress.chips||0));
+  return latest;
+}
+function renderChipChamp(){
+  const el=document.getElementById('chipChamp');if(!el)return;
+  const m=chipStandings();
+  if(!m.size){el.textContent='🪙 Chip Champion: no chip counts reported yet.';return;}
+  const rows=[...m.entries()].sort((a,b)=>b[1]-a[1]);
+  const [name,chips]=rows[0];
+  el.innerHTML='🪙 <b>Chip Champion: '+escapeHtml(name)+' ('+chips+' chips)</b> — wins the 30-SECOND SHOP DASH: grab anything in an American shop, up to £15! ('+rows.map(r=>escapeHtml(r[0])+': '+r[1]).join(' · ')+')';
+}
 function renderLeaderboard(){
+  const chips=chipStandings();
   const m=new Map();PLAYER_NAMES.forEach(n=>m.set(n,{username:n,points:0,stops:0}));
   shared.submissions.forEach(i=>{if(i.status!=='approved')return;const r=m.get(i.username)||{username:i.username,points:0,stops:0};r.points+=scoreWithBonus(i);r.stops+=1;m.set(i.username,r);});
   const rows=[...m.values()].sort((a,b)=>b.points-a.points||a.username.localeCompare(b.username));
   els.leaderboardRows.innerHTML='';
-  rows.forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML='<td></td><td></td><td></td><td></td>';
-    tr.children[0].textContent=i+1;tr.children[1].textContent=r.username;tr.children[2].textContent=r.points;tr.children[3].textContent=r.stops;
+  rows.forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML='<td></td><td></td><td></td><td></td><td></td>';
+    tr.children[0].textContent=i+1;tr.children[1].textContent=r.username;tr.children[2].textContent=r.points;tr.children[3].textContent=r.stops;tr.children[4].textContent=chips.get(r.username)??'—';
     els.leaderboardRows.appendChild(tr);});
+  renderChipChamp();
   els.leaderboardEmpty.classList.toggle('hidden',rows.some(r=>r.points>0));
 }
 async function approveSubmission(id,bonus){
@@ -731,7 +759,7 @@ function updateSub(id,u){const i=shared.submissions.findIndex(x=>x.id===id);if(i
 function renderReward(){
   const done=!isAdmin()&&STOPS.every(s=>statusForStop(s.id)==='approved');
   els.amazonBtn.disabled=!done;
-  els.rewardText.textContent=done?'You finished the whole road trip! Open the vault! 🏆':'Clear every stop to unlock the final prize!';
+  els.rewardText.textContent=done?'You finished the whole road trip! Crack the vault! 🏆':'Clear every stop to crack the vault — $15 cash to spend in America!';
 }
 
 /* ---------- sync (Google Apps Script) ---------- */
@@ -753,7 +781,7 @@ function normaliseShared(data){
     stopTitle:String(i.stopTitle||i.StopTitle||''),day:String(i.day||i.Day||''),hotel:String(i.hotel||i.Hotel||''),
     score:Number(i.score||i.Score||SCORE_PER_STOP),bonus:Number(i.bonus||i.Bonus||0),status:String(i.status||i.Status||'pending').toLowerCase(),
     submittedAt:String(i.submittedAt||i.SubmittedAt||''),updatedAt:String(i.updatedAt||i.UpdatedAt||''),approvedAt:String(i.approvedAt||i.ApprovedAt||''),
-    approvedBy:String(i.approvedBy||i.ApprovedBy||''),suggestBonus:Number(i.suggestBonus||i.SuggestBonus||0),proofName:String(i.proofName||i.ProofName||''),proofImage:String(i.proofImage||i.ProofImage||''),activity:String(i.activity||i.Activity||'')
+    approvedBy:String(i.approvedBy||i.ApprovedBy||''),suggestBonus:Number(i.suggestBonus||i.SuggestBonus||0),chips:Number(i.chips||i.Chips||0),proofName:String(i.proofName||i.ProofName||''),proofImage:String(i.proofImage||i.ProofImage||''),activity:String(i.activity||i.Activity||'')
   })).filter(i=>i.id&&i.username&&i.stopId):[];
   return c;
 }
@@ -781,6 +809,7 @@ async function openSite(){
   showHome();
   if(countdownTimer)clearInterval(countdownTimer);
   countdownTimer=setInterval(renderCountdown,30000);
+  setTimeout(()=>bearCelebrate(isAdmin()?'The boss has arrived! 👑':'WELCOME BACK, CHAMPION! 🎉'),700);
   await syncShared();
 }
 els.loginForm.addEventListener('submit',async e=>{e.preventDefault();els.loginError.textContent='';if(!await doLogin(els.username.value,els.password.value))els.loginError.textContent='Wrong name or password.';});
@@ -826,6 +855,12 @@ function jackpot(done){
   setTimeout(()=>{clearInterval(rain);o.classList.add('out');setTimeout(()=>{o.remove();if(done)done();},600);},10000);
 }
 function updateChips(){const el=document.getElementById('hudChips');if(el)el.textContent=(progress.chips||0);const d=document.querySelector('.den-balance b');if(d)d.textContent=(progress.chips||0);}
+function bearCelebrate(msg){
+  const m=document.getElementById('cornerMascot');if(!m)return;
+  m.classList.remove('mega');void m.offsetWidth; /* restart animation */
+  m.classList.add('mega');setTimeout(()=>m.classList.remove('mega'),1900);
+  if(msg)bearShout(msg);
+}
 function bearShout(msg){const b=document.getElementById('bearBubble');if(!b)return;b.textContent=msg;b.classList.add('show');clearTimeout(bearShout._t);bearShout._t=setTimeout(()=>b.classList.remove('show'),4200);}
 /* talking bear mascot */
 const BEAR_LINES=['Let\u2019s hit the road! \ud83d\udea6','Beat my high score\u2026 if you can!','Snap those photos! \ud83d\udcf8','Route 66, here we come!','I smell snacks\u2026 \ud83c\udf6b','Don\u2019t poke the burros!','Tap the glowing stop!','Grrreat driving, team!','Are we there yet? \ud83d\ude02','Watch out for meteors! \u2604\ufe0f','I bet Lily wins this one\u2026','Jacob, is that your best score?!','Bears LOVE scavenger hunts.','The Grand Canyon is GRRRAND.','Vegas lights, here I come! \ud83c\udfb0','Don\u2019t feed me\u2026 feed the leaderboard!','5 games per stop \u2014 beat them ALL!','Hannah\u2019s coming for first place!','Ethan built all this. Show off. \ud83d\ude0f','Photo of EVERY hunt item, no cheating!','My cousin lives at Bearizona!','Fastest paws in the West. \ud83d\udc3e','Bonus points for extra wins!','Horseshoe Bend \u2014 stay back from the edge!','I call shotgun! \ud83d\ude97','Winner gets\u2026 my respect. And points.','Simon says\u2026 tap faster!','Jackpot!! Oh wait, wrong game.','Stretch those tapping fingers!','11 hours on a plane? Wake me in LA.','TAP ME to visit my Bonus Den! \ud83c\udfb0','Feeling lucky? Tap me and find out!','My den. Your chips. One tap. \ud83d\udc3b','Double or nothing? Tap the bear!','I never lose at dice. Prove me wrong.','The wheel loves gold... usually.','Scared to gamble? Chicken! \ud83d\udc14','Win 10 chips every arcade game you beat!','House always wins. I AM the house.','All-in? You maniac. I respect it.','Psst\u2026 tap me. First flip\u2019s free-ish.','Chips buy glory, not sweets. Sorry.','A wise bear once said: one more spin.','Vegas rules: what happens in the den stays in the den.'];
@@ -852,6 +887,7 @@ function openDen(){
       '<div class="den-game"><h4>\ud83c\udfa1 Lucky Wheel</h4><div class="den-wheel">\ud83c\udfa1</div><div class="den-row"><button type="button" class="btn btn-primary den-spin" data-c="gold">\ud83d\udfe1 \u00d72</button><button type="button" class="btn btn-secondary den-spin" data-c="purple">\ud83d\udfe3 \u00d73</button><button type="button" class="btn btn-danger den-spin" data-c="red">\ud83d\udd34 \u00d75</button></div></div>'+
     '</div>'+
     '<p class="den-msg">Pick a bet, then play. Beat every arcade game for +10 chips each!</p>'+
+    '<p class="den-instr">📖 HOW IT WORKS: choose your bet at the top, then tap a game. Win = your bet multiplied. Lose = bet gone. Ties give your bet back. Most chips at the end of the trip = 30-SECOND SHOP DASH (anything up to £15)!</p>'+
   '</div>';
   document.body.appendChild(o);
   const msg=o.querySelector('.den-msg');
@@ -865,7 +901,7 @@ function openDen(){
     progress.chips=(progress.chips||0)-w+(win?w*mult:0);saveProgress();updateChips();
     msg.textContent=win?('\ud83c\udf89 '+label+' You win '+(w*mult-w)+' chips!'):('\ud83d\udc80 '+label+' Lost '+w+' chips.');
     burst(o.querySelector('.den-card'));if(!win)o.querySelector('.den-card').classList.add('shake'),setTimeout(()=>o.querySelector('.den-card').classList.remove('shake'),400);
-    bearShout(win?'NOO! My chips! \ud83d\ude2d':'The house thanks you. \ud83d\ude0f');}
+    if(win)bearCelebrate('NOO! My chips! 😭');else bearShout('The house thanks you. 😏');}
   /* coin flip */
   let busy=false;
   o.querySelectorAll('.den-flip').forEach(b=>b.addEventListener('click',()=>{
