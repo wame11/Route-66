@@ -30,7 +30,7 @@ const els={
 
 /* ---------- storage ---------- */
 function freshProgress(){return {completed:{},submitted:{},photos:{},hunt:{},huntPhotos:{},game:{},quiz:{},points:{},chips:25,chipGrant:{}};}
-function freshShared(){return {submissions:[],updatedAt:null};}
+function freshShared(){return {submissions:[],updatedAt:null,players:[]};}
 function readJson(k,f=null){try{const v=localStorage.getItem(k);return v?JSON.parse(v):f;}catch{return f;}}
 function writeJson(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch{return false;}}
 function progressKey(){return STORAGE.progressPrefix+(session?.username||'guest');}
@@ -288,7 +288,7 @@ function reportScore(root,stop,gi,score,won){
   st.complete=Object.values(st.perGame).some(g=>g.won);
   progress.game[stop.id]=st;
   const gk=stop.id+'-'+gi;
-  if(won&&!progress.chipGrant[gk]){progress.chipGrant[gk]=true;progress.chips=(progress.chips||0)+10;updateChips();sfx('coin');bearShout('+10 chips! Come gamble them with me! 🐻🪙');setTimeout(maybeMysteryBox,1200);}
+  if(won&&!progress.chipGrant[gk]){progress.chipGrant[gk]=true;progress.chips=(progress.chips||0)+10;grantEarn(10);updateChips();syncPlayer();sfx('coin');bearShout('+10 chips! Come gamble them with me! 🐻🪙');setTimeout(maybeMysteryBox,1200);}
   saveProgress();refreshTaskTags(root,stop);
   const badge=root.querySelector('.gm-tab[data-gi="'+gi+'"] .gm-best');
   if(badge)badge.textContent=st.perGame[gi].best+(st.perGame[gi].won?' 🏆':'');
@@ -694,7 +694,7 @@ async function submitStop(stop,index,cs,root){
   if(i>=0)shared.submissions[i]=sub;else shared.submissions.push(sub);
   saveShared();
   progress.submitted[stop.id]={id:sub.id,status:'pending'};saveProgress();
-  cs.textContent='Mission sent to the boss! 🎉';burst(root);bearCelebrate('MISSION COMPLETE! Legend! 🏆');
+  cs.textContent='Mission sent to the boss! 🎉';burst(root);bearCelebrate('MISSION COMPLETE! Legend! 🏆');syncPlayer();
   await postRemote({action:'submit',submission:sub});
   setTimeout(showHome,900);
 }
@@ -722,7 +722,8 @@ function renderAdminPanel(){
 }
 function chipStandings(){
   const latest=new Map();
-  [...shared.submissions].sort((a,b)=>timestamp(a.updatedAt)-timestamp(b.updatedAt)).forEach(i=>{if(i.username)latest.set(i.username,Number(i.chips||0));});
+  (shared.players||[]).forEach(p=>{if(p.username)latest.set(p.username,Number(p.chips||0));});
+  [...shared.submissions].sort((a,b)=>timestamp(a.updatedAt)-timestamp(b.updatedAt)).forEach(i=>{if(i.username&&!latest.has(i.username))latest.set(i.username,Number(i.chips||0));});
   if(session&&!isAdmin()&&!session.test)latest.set(session.username,Number(progress.chips||0));
   return latest;
 }
@@ -770,15 +771,36 @@ async function syncShared(){
   if(!CONFIG.sheetEndpoint){loadShared();applySharedToProgress();renderHome();return;}
   try{const url=new URL(CONFIG.sheetEndpoint);url.searchParams.set('action','state');url.searchParams.set('t',Date.now());
     const r=await fetch(url.toString());shared=normaliseShared(await r.json());saveShared();}catch{loadShared();}
-  applySharedToProgress();renderHome();
+  applySharedToProgress();renderHome();syncPlayer();
 }
 async function postRemote(payload){
   if(!CONFIG.sheetEndpoint)return null;
   try{const r=await fetch(CONFIG.sheetEndpoint,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
     const data=await r.json();if(data?.submissions){shared=normaliseShared(data);saveShared();}return data;}catch{return null;}
 }
+/* ===== API helpers for players + rooms ===== */
+async function apiPost(payload){if(!CONFIG.sheetEndpoint)return null;try{const r=await fetch(CONFIG.sheetEndpoint,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});return await r.json();}catch(_){return null;}}
+async function apiGet(params){if(!CONFIG.sheetEndpoint)return null;try{const u=new URL(CONFIG.sheetEndpoint);Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));u.searchParams.set('t',Date.now());const r=await fetch(u.toString());return await r.json();}catch(_){return null;}}
+/* push this player's live stats so admin sees them */
+let _syncT=null;
+function syncPlayer(){
+  if(!session||isAdmin()||session.test||!CONFIG.sheetEndpoint)return;
+  clearTimeout(_syncT);
+  _syncT=setTimeout(()=>{
+    const seasonTier=(typeof SEASON_REWARDS!=='undefined')?SEASON_REWARDS.filter(r=>totalEarned()>=r[0]).length:0;
+    apiPost({action:'savePlayer',player:{
+      username:session.username,
+      points:playerPoints(session.username)+(progress.playBonus||0),
+      chips:progress.chips||0,
+      chipsEarned:progress.chipsEarned||0,
+      seasonTier:seasonTier,
+      stops:STOPS.filter(s=>statusForStop(s.id)==='approved').length,
+      character:JSON.stringify((progress.char&&progress.char.equip)||{})
+    }});
+  },1500);
+}
 function normaliseShared(data){
-  const c=freshShared();c.updatedAt=data?.updatedAt||null;
+  const c=freshShared();c.updatedAt=data?.updatedAt||null;c.players=Array.isArray(data?.players)?data.players:[];
   c.submissions=Array.isArray(data?.submissions)?data.submissions.map(i=>({
     id:String(i.id||i.ID||''),username:String(i.username||i.Username||''),stopId:String(i.stopId||i.StopID||''),
     stopTitle:String(i.stopTitle||i.StopTitle||''),day:String(i.day||i.Day||''),hotel:String(i.hotel||i.Hotel||''),
@@ -857,7 +879,7 @@ function jackpot(done){
   /* end after 10s */
   setTimeout(()=>{clearInterval(rain);o.classList.add('out');setTimeout(()=>{o.remove();if(done)done();},600);},10000);
 }
-function updateChips(){const el=document.getElementById('hudChips');if(el)el.textContent=(progress.chips||0);const d=document.querySelector('.den-balance b');if(d)d.textContent=(progress.chips||0);}
+function updateChips(){const el=document.getElementById('hudChips');if(el)el.textContent=(progress.chips||0);const d=document.querySelector('.den-balance b');if(d)d.textContent=(progress.chips||0);const cc=document.getElementById('charChips');if(cc)cc.textContent=(progress.chips||0);}
 function bearCelebrate(msg){
   const m=document.getElementById('cornerMascot');if(!m)return;
   m.classList.remove('mega');void m.offsetWidth; /* restart animation */
@@ -902,7 +924,7 @@ function openDen(){
     if(w<=0){msg.textContent='No chips! Beat an arcade game (+10) and come back.';return 0;}
     return w;}
   function settle(win,w,mult,label){
-    progress.chips=(progress.chips||0)-w+(win?w*mult:0);saveProgress();updateChips();
+    progress.chips=(progress.chips||0)-w+(win?w*mult:0);saveProgress();updateChips();syncPlayer();
     msg.textContent=win?('\ud83c\udf89 '+label+' You win '+(w*mult-w)+' chips!'):('\ud83d\udc80 '+label+' Lost '+w+' chips.');
     burst(o.querySelector('.den-card'));if(!win)o.querySelector('.den-card').classList.add('shake'),setTimeout(()=>o.querySelector('.den-card').classList.remove('shake'),400);
     if(win){sfx('win');bearCelebrate('NOO! My chips! 😭');}else{sfx('lose');bearShout('The house thanks you. 😏');}denReact(win);}
@@ -1089,15 +1111,279 @@ function openInvest(){
 /* make the HUD chip tappable */
 document.addEventListener('click',e=>{const c=e.target.closest('.hud-chips');if(c&&!isAdmin()){openInvest();}});
 
+/* ===== CHARACTER + ITEM SHOP + SEASON PASS ===== */
+/* Items: id, name, price, category, and how they paint on the avatar. rarity sets the card colour. */
+const SHOP_ITEMS=[
+  /* skin tone (free base choices) */
+  {id:'skin_light',cat:'Body',name:'Light',price:0,rar:'free',skin:'#f1c9a5'},
+  {id:'skin_tan',cat:'Body',name:'Tan',price:0,rar:'free',skin:'#e0ac69'},
+  {id:'skin_brown',cat:'Body',name:'Brown',price:0,rar:'free',skin:'#a56b46'},
+  {id:'skin_deep',cat:'Body',name:'Deep',price:0,rar:'free',skin:'#7a4a2b'},
+  /* hair */
+  {id:'hair_short_brown',cat:'Hair',name:'Short Brown',price:0,rar:'free',hair:'#5a3a1a',hairstyle:'short'},
+  {id:'hair_long_blonde',cat:'Hair',name:'Long Blonde',price:20,rar:'common',hair:'#e6c86a',hairstyle:'long'},
+  {id:'hair_long_black',cat:'Hair',name:'Long Black',price:20,rar:'common',hair:'#1c1c22',hairstyle:'long'},
+  {id:'hair_pony_red',cat:'Hair',name:'Red Ponytail',price:40,rar:'rare',hair:'#c0431a',hairstyle:'pony'},
+  {id:'hair_bun_pink',cat:'Hair',name:'Pink Bun',price:60,rar:'rare',hair:'#e86fae',hairstyle:'bun'},
+  {id:'hair_spike_blue',cat:'Hair',name:'Blue Spikes',price:80,rar:'epic',hair:'#3a7bd5',hairstyle:'spike'},
+  {id:'hair_curly_purple',cat:'Hair',name:'Purple Curls',price:80,rar:'epic',hair:'#8a4d9e',hairstyle:'curly'},
+  /* outfit / shirt */
+  {id:'shirt_red',cat:'Outfit',name:'Red Tee',price:0,rar:'free',shirt:'#e0654f'},
+  {id:'shirt_teal',cat:'Outfit',name:'Teal Tee',price:15,rar:'common',shirt:'#3aa79a'},
+  {id:'shirt_dress_pink',cat:'Outfit',name:'Pink Dress',price:50,rar:'rare',shirt:'#e86fae',dress:true},
+  {id:'shirt_dress_purple',cat:'Outfit',name:'Purple Dress',price:50,rar:'rare',shirt:'#8a4d9e',dress:true},
+  {id:'shirt_hoodie',cat:'Outfit',name:'Cool Hoodie',price:60,rar:'rare',shirt:'#444a63',hood:true},
+  {id:'shirt_denim',cat:'Outfit',name:'Denim Jacket',price:70,rar:'epic',shirt:'#5a7ba8'},
+  {id:'shirt_gold',cat:'Outfit',name:'Golden Suit ✨',price:150,rar:'legendary',shirt:'#f0a830',glow:true},
+  {id:'shirt_rainbow',cat:'Outfit',name:'Rainbow Tee 🌈',price:120,rar:'legendary',shirt:'rainbow'},
+  /* hats */
+  {id:'hat_none',cat:'Hat',name:'No Hat',price:0,rar:'free',hat:null},
+  {id:'hat_cowboy',cat:'Hat',name:'Cowboy Hat',price:40,rar:'common',hat:'cowboy'},
+  {id:'hat_cap',cat:'Hat',name:'Baseball Cap',price:30,rar:'common',hat:'cap'},
+  {id:'hat_crown',cat:'Hat',name:'Golden Crown 👑',price:200,rar:'legendary',hat:'crown'},
+  {id:'hat_bow',cat:'Hat',name:'Pink Bow',price:35,rar:'common',hat:'bow'},
+  {id:'hat_party',cat:'Hat',name:'Party Hat',price:45,rar:'rare',hat:'party'},
+  {id:'hat_beanie',cat:'Hat',name:'Beanie',price:35,rar:'common',hat:'beanie'},
+  /* face / accessories */
+  {id:'acc_none',cat:'Face',name:'None',price:0,rar:'free',acc:null},
+  {id:'acc_sun',cat:'Face',name:'Sunglasses 😎',price:40,rar:'rare',acc:'sun'},
+  {id:'acc_glasses',cat:'Face',name:'Round Glasses',price:25,rar:'common',acc:'glasses'},
+  {id:'acc_star',cat:'Face',name:'Star Face Paint ⭐',price:55,rar:'rare',acc:'star'},
+  {id:'acc_moustache',cat:'Face',name:'Silly Moustache',price:30,rar:'common',acc:'tache'},
+  /* pets that float beside you */
+  {id:'pet_none',cat:'Pet',name:'No Pet',price:0,rar:'free',pet:null},
+  {id:'pet_burro',cat:'Pet',name:'Pet Burro 🫏',price:90,rar:'epic',pet:'🫏'},
+  {id:'pet_eagle',cat:'Pet',name:'Pet Eagle 🦅',price:90,rar:'epic',pet:'🦅'},
+  {id:'pet_lizard',cat:'Pet',name:'Pet Lizard 🦎',price:70,rar:'rare',pet:'🦎'},
+  {id:'pet_ufo',cat:'Pet',name:'UFO Buddy 🛸',price:130,rar:'legendary',pet:'🛸'}
+];
+const SHOP_CATS=['Body','Hair','Outfit','Hat','Face','Pet'];
+const RAR_LABEL={free:'FREE',common:'Common',rare:'Rare',epic:'Epic',legendary:'Legendary'};
+function char(){progress.char=progress.char||{owned:{skin_light:1,hair_short_brown:1,shirt_red:1,hat_none:1,acc_none:1,pet_none:1},
+  equip:{Body:'skin_light',Hair:'hair_short_brown',Outfit:'shirt_red',Hat:'hat_none',Face:'acc_none',Pet:'pet_none'}};return progress.char;}
+function equipped(cat){const it=SHOP_ITEMS.find(i=>i.id===char().equip[cat]);return it||SHOP_ITEMS.find(i=>i.cat===cat);}
+function avatarSVG(){
+  const body=equipped('Body'),hair=equipped('Hair'),out=equipped('Outfit'),hat=equipped('Hat'),face=equipped('Face'),pet=equipped('Pet');
+  const skin=body.skin||'#e0ac69';
+  const shirtFill=out.shirt==='rainbow'?'url(#rainbowg)':(out.shirt||'#e0654f');
+  let hairEl='';
+  const hc=hair.hair||'#5a3a1a';
+  if(hair.hairstyle==='short')hairEl='<path d="M58 44c0-20 64-20 64 0 0 6-4 8-4 8-2-14-54-14-56 0 0 0-4-2-4-8z" fill="'+hc+'"/>';
+  else if(hair.hairstyle==='long')hairEl='<path d="M54 46c0-24 72-24 72 0v40c0 6-10 6-10 0V56c-2-12-50-12-52 0v30c0 6-10 6-10 0z" fill="'+hc+'"/>';
+  else if(hair.hairstyle==='pony')hairEl='<path d="M58 44c0-20 64-20 64 0 0 6-4 8-4 8-2-14-54-14-56 0 0 0-4-2-4-8z" fill="'+hc+'"/><path d="M120 50c14 4 18 30 8 54-4-2-8-4-10-8 6-16 4-34-2-40z" fill="'+hc+'"/>';
+  else if(hair.hairstyle==='bun')hairEl='<circle cx="90" cy="34" r="12" fill="'+hc+'"/><path d="M58 46c0-20 64-20 64 0 0 6-4 8-4 8-2-14-54-14-56 0z" fill="'+hc+'"/>';
+  else if(hair.hairstyle==='spike')hairEl='<path d="M56 48l8-18 8 14 10-18 8 16 10-14 8 18 6-10v10c-2-10-62-10-64 0z" fill="'+hc+'"/>';
+  else if(hair.hairstyle==='curly')hairEl='<g fill="'+hc+'"><circle cx="60" cy="44" r="10"/><circle cx="74" cy="36" r="11"/><circle cx="90" cy="33" r="11"/><circle cx="106" cy="36" r="11"/><circle cx="120" cy="44" r="10"/></g>';
+  let hatEl='';
+  if(hat.hat==='cowboy')hatEl='<g><ellipse cx="90" cy="40" rx="52" ry="10" fill="#8a5a33"/><path d="M66 40c0-22 48-22 48 0z" fill="#a56b3a"/></g>';
+  else if(hat.hat==='cap')hatEl='<g><path d="M60 38c0-18 60-18 60 0z" fill="#e0654f"/><ellipse cx="128" cy="40" rx="20" ry="5" fill="#c1440e"/></g>';
+  else if(hat.hat==='crown')hatEl='<path d="M62 36l8-18 10 12 10-16 10 16 10-12 8 18z" fill="#f0a830" stroke="#c1440e" stroke-width="2"/><circle cx="90" cy="22" r="4" fill="#e0654f"/>';
+  else if(hat.hat==='bow')hatEl='<g fill="#e86fae"><path d="M80 34l-16-8v16z"/><path d="M100 34l16-8v16z"/><circle cx="90" cy="34" r="6"/></g>';
+  else if(hat.hat==='party')hatEl='<path d="M90 12l16 30H74z" fill="#8a4d9e"/><circle cx="90" cy="12" r="5" fill="#f0a830"/>';
+  else if(hat.hat==='beanie')hatEl='<path d="M60 42c0-24 60-24 60 0z" fill="#3aa79a"/><rect x="58" y="40" width="64" height="8" rx="4" fill="#2a7d72"/>';
+  let faceEl='';
+  if(face.acc==='sun')faceEl='<g fill="#241a22"><rect x="66" y="66" width="20" height="12" rx="4"/><rect x="94" y="66" width="20" height="12" rx="4"/><rect x="86" y="70" width="8" height="3"/></g>';
+  else if(face.acc==='glasses')faceEl='<g fill="none" stroke="#241a22" stroke-width="3"><circle cx="76" cy="72" r="10"/><circle cx="104" cy="72" r="10"/><path d="M86 72h8"/></g>';
+  else if(face.acc==='star')faceEl='<text x="72" y="60" font-size="16">⭐</text>';
+  else if(face.acc==='tache')faceEl='<path d="M78 88c4-4 8-4 12 0 4-4 8-4 12 0-4 4-8 2-12-1-4 3-8 5-12 1z" fill="#3a2417"/>';
+  const dress=out.dress?'<path d="M56 120l34-8 34 8-8 60H64z" fill="'+shirtFill+'"/>':'<rect x="60" y="112" width="60" height="60" rx="10" fill="'+shirtFill+'"/>';
+  const glow=out.glow?'<circle cx="90" cy="150" r="70" fill="#f0a830" opacity=".18"/>':'';
+  const petEl=pet.pet?'<text x="150" y="150" font-size="34">'+pet.pet+'</text>':'';
+  return '<svg viewBox="0 0 200 210" width="100%" height="100%"><defs><linearGradient id="rainbowg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e0654f"/><stop offset=".3" stop-color="#f0a830"/><stop offset=".6" stop-color="#5f8a4a"/><stop offset="1" stop-color="#8a4d9e"/></linearGradient></defs>'+
+    glow+petEl+
+    dress+
+    '<circle cx="90" cy="78" r="34" fill="'+skin+'"/>'+
+    '<circle cx="80" cy="76" r="4" fill="#241a22"/><circle cx="100" cy="76" r="4" fill="#241a22"/>'+
+    '<path d="M80 92c4 5 16 5 20 0" fill="none" stroke="#241a22" stroke-width="3" stroke-linecap="round"/>'+
+    hairEl+faceEl+hatEl+'</svg>';
+}
+function renderCharacter(){
+  const box=document.getElementById('charAvatar');if(box)box.innerHTML=avatarSVG();
+  const cc=document.getElementById('charChips');if(cc)cc.textContent=(progress.chips||0);
+}
+let shopCat='Hair';
+function renderShop(){
+  const tabs=document.getElementById('shopTabs'),grid=document.getElementById('shopGrid');if(!tabs||!grid)return;
+  tabs.innerHTML=SHOP_CATS.map(c=>'<button type="button" class="shop-tab'+(c===shopCat?' on':'')+'" data-c="'+c+'">'+c+'</button>').join('');
+  tabs.querySelectorAll('.shop-tab').forEach(b=>b.addEventListener('click',()=>{shopCat=b.dataset.c;renderShop();}));
+  const owned=char().owned,equip=char().equip;
+  grid.innerHTML=SHOP_ITEMS.filter(i=>i.cat===shopCat).map(i=>{
+    const have=owned[i.id],on=equip[i.cat]===i.id;
+    return '<div class="shop-item rar-'+i.rar+(on?' equipped':'')+'">'+
+      '<div class="shop-rar">'+RAR_LABEL[i.rar]+'</div>'+
+      '<div class="shop-name">'+i.name+'</div>'+
+      '<button type="button" class="shop-act" data-id="'+i.id+'">'+(on?'Wearing ✓':have?'Wear':('🪙 '+i.price))+'</button></div>';
+  }).join('');
+  grid.querySelectorAll('.shop-act').forEach(b=>b.addEventListener('click',()=>buyOrWear(b.dataset.id)));
+}
+function buyOrWear(id){
+  const it=SHOP_ITEMS.find(i=>i.id===id);if(!it)return;const c=char();
+  if(!c.owned[id]){
+    if((progress.chips||0)<it.price){bearShout('Not enough chips! Go win some. 🐻');return;}
+    if(it.price>0 && !confirm('Spend '+it.price+' chips on '+it.name+'?\n\nRemember: chips can win you REAL money (the £15 shop dash) — spend them on outfits only if you\u2019re sure!')) return;
+    progress.chips-=it.price;c.owned[id]=1;sfx('coin');bearCelebrate('Nice '+it.name+'! Looking good! 🐻');
+  }
+  c.equip[it.cat]=id;saveProgress();updateChips();renderCharacter();renderShop();syncPlayer();sfx('click');
+}
+/* ===== SEASON PASS (28) — driven by TOTAL chips ever earned ===== */
+const SEASON_REWARDS=[
+  [50,'🪙 +10 bonus chips','chips',10],[100,'🎩 Free Beanie','item','hat_beanie'],[150,'🪙 +15 chips','chips',15],
+  [200,'😎 Free Sunglasses','item','acc_sun'],[250,'🪙 +20 chips','chips',20],[300,'🤠 Free Cowboy Hat','item','hat_cowboy'],
+  [400,'🪙 +25 chips','chips',25],[500,'🦎 Free Pet Lizard','item','pet_lizard'],[650,'🪙 +40 chips','chips',40],
+  [800,'🌈 Rainbow Tee','item','shirt_rainbow'],[1000,'👑 Golden Crown','item','hat_crown'],[1500,'✨ Golden Suit','item','shirt_gold']
+];
+function totalEarned(){return progress.chipsEarned||0;}
+function grantEarn(n){progress.chipsEarned=(progress.chipsEarned||0)+n;checkSeason();}
+function checkSeason(){
+  const t=totalEarned();progress.seasonClaimed=progress.seasonClaimed||[];
+  SEASON_REWARDS.forEach((r,idx)=>{
+    if(t>=r[0]&&!progress.seasonClaimed.includes(idx)){
+      progress.seasonClaimed.push(idx);
+      if(r[2]==='chips'){progress.chips=(progress.chips||0)+r[3];}
+      else if(r[2]==='item'){char().owned[r[3]]=1;}
+      saveProgress();updateChips();setTimeout(()=>bearCelebrate('🎟️ Season tier '+(idx+1)+'! Unlocked: '+r[1]),1500);
+    }
+  });
+}
+function renderSeason(){
+  const track=document.getElementById('seasonTrack'),lbl=document.getElementById('seasonTierLbl');if(!track)return;
+  const t=totalEarned(),claimed=progress.seasonClaimed||[];
+  const tier=SEASON_REWARDS.filter(r=>t>=r[0]).length;
+  if(lbl)lbl.textContent='Tier '+tier+' / '+SEASON_REWARDS.length+' · '+t+' chips earned';
+  track.innerHTML=SEASON_REWARDS.map((r,idx)=>{const done=t>=r[0];
+    return '<div class="season-node'+(done?' done':'')+'"><div class="season-req">'+r[0]+'</div><div class="season-rew">'+r[1]+'</div></div>';
+  }).join('');
+}
+/* ============================================================
+   ONLINE MULTIPLAYER — room codes, everyone on own device
+   Host is authoritative: host owns the questions & scoring,
+   others poll and submit answers. Works for Rush + Heist.
+   ============================================================ */
+function roomCode(){let s='';for(let i=0;i<4;i++)s+='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random()*31)];return s;}
+let mpPoll=null,mpHostLoop=null;
+function mpStop(){clearInterval(mpPoll);clearInterval(mpHostLoop);mpPoll=null;mpHostLoop=null;}
+
+/* entry: choose Online or Pass-and-play */
+function mpChooser(body,game,localFn){
+  mpStop();
+  const title=game==='rush'?'⚡ ROUTE RUSH':'🕵️ ROUTE HEIST';
+  if(!CONFIG.sheetEndpoint){
+    body.innerHTML='<div class="mp-turn">'+title+'</div><p class="hub-earn">🌐 Online play needs the backend connected (ask Ethan). Playing pass-and-play instead!</p>';
+    setTimeout(()=>localFn(body),1400);return;
+  }
+  body.innerHTML='<div class="mp-turn">'+title+'</div>'+
+    '<div class="mp-choose">'+
+      '<button class="btn btn-primary mp-online" type="button">🌐 Online Room<span>everyone on their own device</span></button>'+
+      '<button class="btn btn-secondary mp-local" type="button">📱 Pass & Play<span>share one phone</span></button>'+
+    '</div>';
+  body.querySelector('.mp-local').addEventListener('click',()=>localFn(body));
+  body.querySelector('.mp-online').addEventListener('click',()=>mpLobby(body,game));
+}
+
+/* lobby: create or join */
+function mpLobby(body,game){
+  const me=session.test?'Guest'+Math.floor(Math.random()*99):session.username;
+  body.innerHTML='<div class="mp-turn">🌐 Online '+(game==='rush'?'Route Rush':'Route Heist')+'</div>'+
+    '<div class="mp-lobby">'+
+      '<button class="btn btn-primary mp-host" type="button">➕ Create Room</button>'+
+      '<div class="mp-join-row"><input class="mp-code-in" placeholder="CODE" maxlength="4" style="text-transform:uppercase"><button class="btn btn-secondary mp-join" type="button">Join</button></div>'+
+    '</div><p class="mp-lobby-msg"></p>';
+  const msg=body.querySelector('.mp-lobby-msg');
+  body.querySelector('.mp-host').addEventListener('click',async()=>{
+    const code=roomCode();msg.textContent='Creating room…';
+    const r=await roomCreate(code,game,me);
+    if(!r||!r.ok){msg.textContent='Could not reach server. Try pass & play.';return;}
+    mpRoom(body,game,code,me,true);
+  });
+  body.querySelector('.mp-join').addEventListener('click',async()=>{
+    const code=(body.querySelector('.mp-code-in').value||'').toUpperCase().trim();
+    if(code.length<4){msg.textContent='Enter the 4-letter code.';return;}
+    msg.textContent='Joining…';const r=await roomJoin(code,me);
+    if(!r||!r.ok||!r.room){msg.textContent='Room not found — check the code.';return;}
+    mpRoom(body,game,code,me,false);
+  });
+}
+function roomCreate(code,game,host){return apiPost({action:'roomCreate',code,game,host});}
+function roomJoin(code,name){return apiPost({action:'roomJoin',code,name});}
+function roomWrite(code,state){return apiPost({action:'roomWrite',code,state});}
+function roomAnswer(code,name,answer,round){return apiPost({action:'roomAnswer',code,name,answer,round});}
+function roomPoll(code){return apiGet({action:'room',code});}
+
+/* the live room */
+function mpRoom(body,game,code,me,isHost){
+  mpStop();
+  const bank=questionBank();
+  let last=0;
+  function render(st){
+    if(!st)return;
+    if(st.phase==='lobby'){
+      body.innerHTML='<div class="mp-turn">Room <b class="mp-code">'+code+'</b></div>'+
+        '<p class="hub-earn">Share this code! Players join on their own phones.</p>'+
+        '<div class="mp-players">'+st.players.map(p=>'<span class="mp-chip">'+escapeHtml(p)+(p===st.host?' 👑':'')+'</span>').join('')+'</div>'+
+        (isHost?'<button class="btn btn-primary mp-start" type="button">▶️ Start ('+st.players.length+' in)</button>':'<p class="mp-wait">Waiting for host to start…</p>');
+      const sb=body.querySelector('.mp-start');if(sb)sb.addEventListener('click',()=>hostNext(st,true));
+    }else if(st.phase==='question'){
+      const Q=st.question;const answered=st.answers&&st.answers[me]&&st.answers[me].r===st.round;
+      body.innerHTML='<div class="mp-scores">'+st.players.map(p=>escapeHtml(p)+': <b>'+(st.scores[p]||0)+'</b>').join(' · ')+'</div>'+
+        '<div class="mp-q">Q'+st.round+': '+escapeHtml(Q.q)+'</div>'+
+        (answered?'<p class="mp-wait">✅ Answer locked — waiting for others…</p>':
+          '<div class="mp-opts">'+Q.opts.map(o=>'<button type="button" class="btn btn-quiet mp-opt">'+escapeHtml(o)+'</button>').join('')+'</div>');
+      body.querySelectorAll('.mp-opt').forEach(b=>b.addEventListener('click',()=>{roomAnswer(code,me,b.textContent,st.round);sfx('click');b.parentNode.innerHTML='<p class="mp-wait">✅ Locked in!</p>';}));
+    }else if(st.phase==='reveal'){
+      body.innerHTML='<div class="mp-turn">Answer: <b>'+escapeHtml(st.question.a)+'</b></div>'+
+        '<div class="mp-scores">'+rankScores(st).map((p,i)=>(i===0?'🥇 ':'')+escapeHtml(p[0])+': <b>'+p[1]+'</b>').join('<br>')+'</div>'+
+        (isHost?'<button class="btn btn-primary mp-next" type="button">Next ▶️</button>':'<p class="mp-wait">Next question soon…</p>');
+      const nb=body.querySelector('.mp-next');if(nb)nb.addEventListener('click',()=>hostNext(st,false));
+    }else if(st.phase==='done'){
+      mpStop();const rank=rankScores(st);
+      body.innerHTML='<div class="mp-turn">🏆 WINNER: '+escapeHtml(rank[0][0])+'!</div>'+
+        '<div class="mp-scores">'+rank.map((p,i)=>['🥇','🥈','🥉'][i]||('#'+(i+1))+' '+escapeHtml(p[0])+': <b>'+p[1]+'</b>').map((s,idx)=>['🥇','🥈','🥉'][idx]?s+' '+escapeHtml(rank[idx][0])+': <b>'+rank[idx][1]+'</b>':s).join('<br>')+'</div>'+
+        '<button class="btn btn-primary" type="button" onclick="showView(\'gamesView\')">Back to games</button>';
+      sfx('jackpot');bearCelebrate('GG! '+rank[0][0]+' takes it! 🏆');
+    }
+  }
+  function rankScores(st){return st.players.map(p=>[p,st.scores[p]||0]).sort((a,b)=>b[1]-a[1]);}
+  /* host advances the game */
+  function hostNext(st,first){
+    if(first){st.round=0;st.scores={};st.players.forEach(p=>st.scores[p]=0);}
+    st.round++;
+    if(st.round>Math.max(6,st.players.length*4)){st.phase='done';roomWrite(code,st);return;}
+    const Q=bank[(seedFrom(code+st.round))%bank.length];
+    st.question={q:Q.q,opts:[...Q.opts].sort(()=>Math.random()-0.5),a:Q.a};
+    st.answers={};st.phase='question';st.qStart=Date.now();
+    roomWrite(code,st);
+  }
+  /* host scoring loop */
+  if(isHost){
+    mpHostLoop=setInterval(async()=>{
+      const r=await roomPoll(code);const st=r&&r.room;if(!st)return;
+      if(st.phase==='question'){
+        const ans=st.answers||{};const inRound=st.players.filter(p=>ans[p]&&ans[p].r===st.round);
+        const timeUp=Date.now()-(st.qStart||0)>20000;
+        if(inRound.length>=st.players.length||timeUp){
+          st.players.forEach(p=>{if(ans[p]&&ans[p].r===st.round&&ans[p].a===st.question.a)st.scores[p]=(st.scores[p]||0)+100;});
+          st.phase='reveal';roomWrite(code,st);
+        }
+      }
+    },1800);
+  }
+  /* everyone polls to render */
+  mpPoll=setInterval(async()=>{
+    const r=await roomPoll(code);if(r&&r.room){if(r.room.updatedAt!==last){last=r.room.updatedAt;render(r.room);}}
+  },1600);
+  roomPoll(code).then(r=>render(r&&r.room));
+}
+
 /* ---- view switching ---- */
-const VIEWS=['homeView','gamesView','musicView','postView'];
+const VIEWS=['homeView','gamesView','musicView','postView','charView'];
 function showView(id){
-  stopGame();stopHeadsUp();
+  stopGame();stopHeadsUp();if(typeof mpStop==='function')mpStop();
   document.getElementById('levelView').classList.add('hidden');
   VIEWS.forEach(v=>document.getElementById(v)?.classList.toggle('hidden',v!==id));
   document.querySelectorAll('.vtab').forEach(b=>b.classList.toggle('active',b.dataset.view===id));
   if(id==='gamesView')renderHub();
   if(id==='postView')renderPostcards();
+  if(id==='charView'){renderCharacter();renderShop();renderSeason();}
   if(id==='homeView')renderHome();
   window.scrollTo(0,0);
 }
@@ -1175,13 +1461,13 @@ function renderHub(){
   grid.innerHTML=HUB_GAMES.map(g=>'<button type="button" class="hub-card" data-g="'+g.id+'"><span class="hub-name">'+g.n+'</span><span class="hub-desc">'+g.d+'</span></button>').join('');
   grid.querySelectorAll('.hub-card').forEach(b=>b.addEventListener('click',()=>openHubGame(b.dataset.g)));
 }
-document.getElementById('hubBack')?.addEventListener('click',()=>{stopGame();stopHeadsUp();renderHub();});
+document.getElementById('hubBack')?.addEventListener('click',()=>{stopGame();stopHeadsUp();if(typeof mpStop==='function')mpStop();renderHub();});
 function openHubGame(id){
   stopGame();sfx('click');
   document.getElementById('hubGrid').classList.add('hidden');
   const st=document.getElementById('hubStage');st.classList.remove('hidden');
   const body=document.getElementById('hubBody');body.innerHTML='';
-  ({breaker:hubBreaker,roadle:hubRoadle,ttt:hubTTT,headsup:hubHeadsUp,rush:hubRush,heist:hubHeist,story:hubStory,accent:hubAccent,doodle:hubDoodle})[id](body);
+  const dispatch={breaker:hubBreaker,roadle:hubRoadle,ttt:hubTTT,headsup:hubHeadsUp,story:hubStory,accent:hubAccent,doodle:hubDoodle,rush:b=>mpChooser(b,'rush',hubRush),heist:b=>mpChooser(b,'heist',hubHeist)};dispatch[id](body);
   window.scrollTo(0,0);
 }
 /* --- Brick breaker (9) --- */
@@ -1406,12 +1692,21 @@ function hubHeist(body){
   activeGame={stop(){}};
 }
 
-/* ---- MUSIC ---- */
-document.getElementById('musicBtn')?.addEventListener('click',()=>{
-  const q=document.getElementById('musicInput').value.trim();if(!q)return;
-  window.open('https://music.youtube.com/search?q='+encodeURIComponent(q+' lyrics'),'_blank');
-});
-document.querySelectorAll('.mq').forEach(s=>s.addEventListener('click',()=>{document.getElementById('musicInput').value=s.textContent;document.getElementById('musicBtn').click();}));
+/* ---- MUSIC: embedded YouTube player, stays in the app ---- */
+function playSong(q){
+  q=(q||'').trim();if(!q)return;
+  const frame=document.getElementById('musicFrame'),note=document.getElementById('musicNote'),link=document.getElementById('musicOpen');
+  if(!frame)return;
+  const query=encodeURIComponent(q+' lyrics');
+  // YouTube search-embed: plays the top result inline
+  frame.src='https://www.youtube.com/embed?listType=search&list='+query+'&autoplay=1&rel=0';
+  frame.classList.remove('hidden');
+  if(note)note.textContent='▶️ Playing top result for "'+q+'". Needs internet.';
+  if(link){link.href='https://www.youtube.com/results?search_query='+query;link.classList.remove('hidden');}
+}
+document.getElementById('musicBtn')?.addEventListener('click',()=>playSong(document.getElementById('musicInput').value));
+document.getElementById('musicInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')playSong(e.target.value);});
+document.querySelectorAll('.mq').forEach(s=>s.addEventListener('click',()=>{const inp=document.getElementById('musicInput');inp.value=s.textContent;playSong(s.textContent);}));
 
 /* ---- JOURNEY BAR with GPS (36) ---- */
 function haversine(a,b){const R=6371,toR=x=>x*Math.PI/180;const dLat=toR(b[0]-a[0]),dLon=toR(b[1]-a[1]);const h=Math.sin(dLat/2)**2+Math.cos(toR(a[0]))*Math.cos(toR(b[0]))*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.sqrt(h));}
