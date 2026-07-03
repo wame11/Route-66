@@ -38,15 +38,26 @@
         <span id="who" class="who"></span>
       </div>
       <div class="actions">
-        <button id="gamesHubBtn" class="btn btn-quiet" type="button">🎮 Games Hub</button>
+        <button id="muteBtn" class="btn btn-quiet" type="button">🔊</button>
         <button id="syncBtn" class="btn btn-quiet" type="button">Sync</button>
         <button id="logoutBtn" class="btn btn-quiet" type="button">Log out</button>
       </div>
     </nav>
 
+    <nav class="viewtabs">
+      <button type="button" class="vtab active" data-view="homeView">🗺️ Map</button>
+      <button type="button" class="vtab" data-view="gamesView">🎮 Games</button>
+      <button type="button" class="vtab" data-view="musicView">🎵 Music</button>
+      <button type="button" class="vtab" data-view="postView">📮 Postcards</button>
+    </nav>
+
     <!-- HOME / MAP VIEW -->
     <section id="homeView">
       <div id="countdown" class="countdown" aria-live="polite"></div>
+      <div id="journey" class="journey hidden">
+        <div class="journey-track"><div id="journeyFill" class="journey-fill"></div><span id="journeyBear" class="journey-bear">🐻</span></div>
+        <div class="journey-row"><span id="journeyText">Tap update to find us on the route!</span><button id="journeyBtn" class="btn btn-quiet" type="button">📍 Update</button></div>
+      </div>
 
       <div id="hud" class="hud">
         <div class="hud-avatar" id="hudAvatar">🚗</div>
@@ -70,12 +81,12 @@
         <h2>Treasure Vault</h2>
         <p id="rewardText">Clear every stop to unlock the final prize!</p>
         <button id="amazonBtn" class="vault-btn" type="button" disabled><span class="vault-cash">💰 $$$ 💰</span><span class="vault-label">CRACK THE VAULT</span></button>
-        <p id="voucher" class="voucher hidden">Speak to Ethan for your $15 CASH — spend it on anything in America! 🇺🇸 And the family CHIP CHAMPION wins a 30-second shop dash (grab anything within £15 value)! 🏪</p>
+        <p id="voucher" class="voucher hidden">Speak to Ethan for your $15 CASH — spend it on anything in America! 🇺🇸 And the family CHIP CHAMPION wins an EXTRA $15 — a 30-second American shop dash, grab anything up to $15! 🏃💨</p>
       </section>
 
       <section id="adminPanel" class="admin-panel hidden">
         <div class="section-head"><h2>Approval queue</h2>
-          <button id="adminRefreshBtn" class="btn btn-quiet" type="button">Refresh</button></div>
+          <button id="ceremonyBtn" class="btn btn-secondary" type="button">🏆 Awards Ceremony</button> <button id="adminRefreshBtn" class="btn btn-quiet" type="button">Refresh</button></div>
         <p id="sheetStatus" class="sync-status"></p>
         <p id="chipChamp" class="chip-champ"></p>
         <div id="adminRows" class="admin-rows"></div>
@@ -93,77 +104,27 @@
       </section>
     </section>
 
-    <!-- GAMES HUB VIEW -->
-    <section id="gamesHubView" class="games-hub-view hidden">
-      <button id="backFromGamesBtn" class="btn btn-back" type="button">← Back to map</button>
-      <div class="games-hub-card">
-        <h1>🎮 Games Hub — Play Anytime!</h1>
-        <p class="games-hub-subtitle">Earn <b>+5 bonus chips per game</b> (5+ minutes). Top chips at the end = <b>+$15 cash!</b></p>
+    <!-- GAMES HUB -->
+    <section id="gamesView" class="hidden">
+      <div class="hub-head"><h2>🎮 Game Zone</h2><p class="hub-earn">⏱️ Every 5 minutes playing here = <b>+5 points</b> (auto-counted: <b id="playClock">0:00</b>)</p></div>
+      <div id="hubGrid" class="hub-grid"></div>
+      <div id="hubStage" class="hub-stage hidden"><button id="hubBack" class="btn btn-back" type="button">← All games</button><div id="hubBody"></div></div>
+    </section>
 
-        <section class="games-section">
-          <h2>🎯 Bonus Arcade (5 chips each)</h2>
-          <p class="games-hint">Play these mini-games for 5+ minutes to earn +5 bonus chips. No time limit — play as much as you want!</p>
-          <div class="games-grid">
-            <button class="game-card" data-game="brick">
-              <span class="game-emoji">🧱</span>
-              <span class="game-title">Brick Breaker</span>
-              <span class="game-desc">Smash Route 66 signs</span>
-              <span class="game-time">5+ mins</span>
-            </button>
-            <button class="game-card" data-game="wordle">
-              <span class="game-emoji">📝</span>
-              <span class="game-title">Wordle Clone</span>
-              <span class="game-desc">Daily Road Trip word</span>
-              <span class="game-time">5+ mins</span>
-            </button>
-            <button class="game-card" data-game="headguess">
-              <span class="game-emoji">🤔</span>
-              <span class="game-title">Head Guess</span>
-              <span class="game-desc">Phone to head (landscape)</span>
-              <span class="game-time">5+ mins</span>
-            </button>
-            <button class="game-card" data-game="cryptohack">
-              <span class="game-emoji">🔐</span>
-              <span class="game-title">Crypto Hack</span>
-              <span class="game-desc">Find the coins & avoid bombs</span>
-              <span class="game-time">5+ mins</span>
-            </button>
-          </div>
-        </section>
-
-        <section class="games-section">
-          <h2>🎵 Music & Entertainment</h2>
-          <div class="games-grid">
-            <button class="game-card" id="musicBtn">
-              <span class="game-emoji">🎵</span>
-              <span class="game-title">Family Jukebox</span>
-              <span class="game-desc">Search YouTube Music + lyrics</span>
-              <span class="game-time">+5 chips/day</span>
-            </button>
-            <button class="game-card" id="quizBtn">
-              <span class="game-emoji">🎯</span>
-              <span class="game-title">Route 66 Quiz Battle</span>
-              <span class="game-desc">2+ players, mystery boxes!</span>
-              <span class="game-time">10+ mins</span>
-            </button>
-          </div>
-        </section>
-
-        <section class="games-section">
-          <h2>💡 How It Works</h2>
-          <ul class="games-rules">
-            <li><strong>Play any game for 5+ minutes</strong> → <strong>+5 bonus chips</strong></li>
-            <li><strong>Bear trash-talks</strong> your wins and losses (get him riled up!)</li>
-            <li><strong>Most chips at the end of the trip = +$15 cash</strong> to spend in America 🇺🇸</li>
-            <li><strong>Admins can see</strong> each player's current chip count on the leaderboard</li>
-            <li><strong>Games work offline</strong> — no internet needed!</li>
-          </ul>
-        </section>
-
-        <div class="games-chip-tracker">
-          <p>Your chips now: <b id="gamesChipDisplay">0</b> 🪙</p>
-        </div>
+    <!-- MUSIC -->
+    <section id="musicView" class="hidden">
+      <div class="hub-head"><h2>🎵 Music</h2><p class="hub-earn">Type a song — opens it on YouTube Music (needs internet)</p></div>
+      <div class="music-box">
+        <input id="musicInput" placeholder="e.g. Life is a Highway" />
+        <button id="musicBtn" class="btn btn-primary" type="button">▶️ Find song</button>
+        <div class="music-quick"><b>Road trip classics:</b> <span class="mq">Life is a Highway</span><span class="mq">Route 66</span><span class="mq">Take It Easy</span><span class="mq">Viva Las Vegas</span><span class="mq">On The Road Again</span></div>
       </div>
+    </section>
+
+    <!-- POSTCARDS -->
+    <section id="postView" class="hidden">
+      <div class="hub-head"><h2>📮 Postcards</h2><p class="hub-earn">Your arrival photos become postcards — add a caption and download!</p></div>
+      <div id="postGrid" class="post-grid"></div>
     </section>
 
     <!-- LEVEL VIEW -->
@@ -174,12 +135,11 @@
   </main>
 
   <script src="stops.js"></script>
-  <script src="games.js"></script>
   <script src="app.js"></script>
   <script>
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js');
   </script>
-  <button id="cornerMascot" class="corner-mascot hidden" type="button" aria-label="Open Bear's Bonus Den">
+  <button id="cornerMascot" class="corner-mascot hidden" type="button" aria-label="Open Bear’s Bonus Den">
     <span class="mascot-tap">Tap to gamble</span>
     <div id="bearBubble" class="bear-bubble"></div>
     <svg viewBox="0 0 120 120" width="86" height="86">
