@@ -942,7 +942,7 @@ else{try{const s=JSON.parse(sessionStorage.getItem(STORAGE.session)||'null');if(
    HUB MODULE — Game Zone, Music, Postcards, Journey GPS, Streaks,
    Mystery Boxes, SFX, Bear moods/name, Ceremony, play-time points
    ================================================================ */
-let BEAR_NAME=localStorage.getItem('r66-bearname')||'Buck';
+let BEAR_NAME='Buck';
 const BEAR_NAMES=['Buck','Bruno','Nugget','Cactus Jack','Roadie','Sheriff Paws','Tumbleweed','Chips'];
 function setBearName(n){BEAR_NAME=n;localStorage.setItem('r66-bearname',n);bearCelebrate('Call me '+n+'! 🐻');}
 /* ---- SFX + haptics (34) ---- */
@@ -960,6 +960,134 @@ function sfx(kind){
 }
 document.getElementById('muteBtn')?.addEventListener('click',()=>{muted=!muted;localStorage.setItem('r66-muted',muted?'1':'0');document.getElementById('muteBtn').textContent=muted?'🔇':'🔊';});
 if(document.getElementById('muteBtn'))document.getElementById('muteBtn').textContent=muted?'🔇':'🔊';
+
+/* ===== STORY CHAIN (12) — pass & play ===== */
+const STORY_STARTS=['Buck the bear woke up in the back of the car and shouted...','At the Grand Canyon, Jacob leaned over the rail and suddenly...','The burro in Oatman ate Lily\u2019s hat and then...','In Las Vegas, the slot machine started flashing and out came...','Somewhere in the desert the car made a funny noise, so Dad...','A UFO landed right on Route 66 and asked the family for...'];
+function hubStory(body){
+  let lines=[],turn=0;
+  const start=STORY_STARTS[Math.floor(Math.random()*STORY_STARTS.length)];lines.push(start);
+  body.innerHTML='<div class="game-hud">📖 Add ONE sentence, then pass the phone. Tap READ to hear the whole tale!</div>'+
+    '<div class="story-box"></div><textarea class="story-in" rows="2" placeholder="...and then..."></textarea>'+
+    '<div class="den-row"><button class="btn btn-primary story-add" type="button">➕ Add & pass</button><button class="btn btn-secondary story-read" type="button">📢 Read it all</button></div>';
+  const box=body.querySelector('.story-box'),inp=body.querySelector('.story-in');
+  function paint(){box.innerHTML=lines.map((l,i)=>'<p'+(i===0?' class="story-first"':'')+'>'+escapeHtml(l)+'</p>').join('');box.scrollTop=box.scrollHeight;}
+  paint();
+  body.querySelector('.story-add').addEventListener('click',()=>{const t=inp.value.trim();if(!t)return;lines.push(t);inp.value='';turn++;paint();sfx('click');bearShout('Player '+(turn%4+1)+'\u2019s turn! Pass it on! 🐻');});
+  body.querySelector('.story-read').addEventListener('click',()=>{paint();sfx('win');bearCelebrate('What a masterpiece! 📖✨');
+    try{const u=new SpeechSynthesisUtterance(lines.join(' '));u.rate=.95;speechSynthesis.cancel();speechSynthesis.speak(u);}catch(_){/**/}});
+}
+
+/* ===== ACCENT ROULETTE (14) — 5 min timer ===== */
+const ACCENTS=['🤠 Texan Cowboy','👑 Posh British','🏴\u200d☠️ Pirate','🤖 Robot','👽 Alien','🎬 Movie Trailer Voice','👶 Baby Talk','🦸 Superhero','🧛 Dracula','🎤 Rapper','🐨 Aussie','🍕 Italian Chef'];
+function hubAccent(body){
+  body.innerHTML='<div class="game-hud">🎭 Spin the wheel — everyone must talk in that accent for 5 minutes!</div>'+
+    '<div class="accent-face">🎭</div><div class="accent-res"></div>'+
+    '<div class="den-row"><button class="btn btn-primary accent-spin" type="button">🎡 SPIN</button></div>'+
+    '<div class="accent-timer"></div>';
+  const face=body.querySelector('.accent-face'),res=body.querySelector('.accent-res'),tEl=body.querySelector('.accent-timer');
+  let spinning=false,acc=null;
+  body.querySelector('.accent-spin').addEventListener('click',()=>{
+    if(spinning)return;spinning=true;res.textContent='';let t=0;
+    const iv=setInterval(()=>{acc=ACCENTS[Math.floor(Math.random()*ACCENTS.length)];face.textContent=acc.split(' ')[0];
+      if(++t>=18){clearInterval(iv);spinning=false;res.textContent=acc;sfx('win');bearCelebrate('Do the '+acc.replace(/^\S+\s/,'')+' voice! 🎭');
+        let left=300;tEl.textContent='⏱️ 5:00 left';const cd=setInterval(()=>{left--;tEl.textContent='⏱️ '+Math.floor(left/60)+':'+String(left%60).padStart(2,'0')+' left';
+          if(left<=0){clearInterval(cd);tEl.textContent='✅ Time! You survived.';bearShout('You can talk normally now! 😅');}},1000);}
+    },90);});
+}
+
+/* ===== DOODLE DUEL (1) — pass & play ===== */
+const DOODLE_WORDS=['cactus','burro','Route 66 sign','Grand Canyon','slot machine','eagle','cowboy hat','meteor','red rock','canyon','petrol pump','diner','road trip car','sunglasses','tumbleweed','bear','dice','palm tree','suitcase','camera'];
+function hubDoodle(body){
+  const word=DOODLE_WORDS[Math.floor(Math.random()*DOODLE_WORDS.length)];
+  body.innerHTML='<div class="game-hud">✏️ Drawer: peek at the word, draw it. Others guess out loud! Tap NEW for another.</div>'+
+    '<div class="doodle-word">Tap to reveal word 👁️</div>'+
+    '<canvas class="doodle-canvas" width="600" height="360"></canvas>'+
+    '<div class="den-row"><button class="btn btn-secondary doodle-clear" type="button">🧹 Clear</button><button class="btn btn-primary doodle-new" type="button">🔄 New word</button></div>';
+  const wEl=body.querySelector('.doodle-word'),c=body.querySelector('.doodle-canvas'),ctx=c.getContext('2d');
+  let revealed=false,cur=word;
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,600,360);ctx.strokeStyle='#241a22';ctx.lineWidth=4;ctx.lineCap='round';ctx.lineJoin='round';
+  wEl.addEventListener('click',()=>{revealed=!revealed;wEl.textContent=revealed?('✏️ Draw: '+cur):'Tap to reveal word 👁️';});
+  let drawing=false;
+  function pos(e){const r=c.getBoundingClientRect();return [(e.clientX-r.left)*600/r.width,(e.clientY-r.top)*360/r.height];}
+  c.addEventListener('pointerdown',e=>{e.preventDefault();drawing=true;try{c.setPointerCapture(e.pointerId);}catch(_){}const[x,y]=pos(e);ctx.beginPath();ctx.moveTo(x,y);});
+  c.addEventListener('pointermove',e=>{if(!drawing)return;e.preventDefault();const[x,y]=pos(e);ctx.lineTo(x,y);ctx.stroke();});
+  c.addEventListener('pointerup',()=>drawing=false);c.addEventListener('pointerleave',()=>drawing=false);
+  c.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
+  body.querySelector('.doodle-clear').addEventListener('click',()=>{ctx.fillStyle='#fff';ctx.fillRect(0,0,600,360);});
+  body.querySelector('.doodle-new').addEventListener('click',()=>{cur=DOODLE_WORDS[Math.floor(Math.random()*DOODLE_WORDS.length)];revealed=false;wEl.textContent='Tap to reveal word 👁️';ctx.fillStyle='#fff';ctx.fillRect(0,0,600,360);sfx('click');});
+}
+
+/* ===== INVESTING BOARD — tap the chip to invest ===== */
+const MARKET=[
+  {sym:'GOLD',name:'Gold',cg:null,base:2350,emoji:'🥇'},
+  {sym:'SILVER',name:'Silver',cg:null,base:30,emoji:'🥈'},
+  {sym:'OIL',name:'Crude Oil',cg:null,base:80,emoji:'🛢️'},
+  {sym:'BTC',name:'Bitcoin',cg:'bitcoin',base:65000,emoji:'₿'},
+  {sym:'ETH',name:'Ethereum',cg:'ethereum',base:3200,emoji:'💎'},
+  {sym:'SPX',name:'S&P 500',cg:null,base:5400,emoji:'📈'},
+  {sym:'TSLA',name:'Tesla',cg:null,base:250,emoji:'🚗'},
+  {sym:'AMZN',name:'Amazon',cg:null,base:185,emoji:'📦'},
+  {sym:'RKLB',name:'Rocket Lab',cg:null,base:8,emoji:'🚀'},
+  {sym:'AAPL',name:'Apple',cg:null,base:220,emoji:'🍎'},
+  {sym:'NVDA',name:'Nvidia',cg:null,base:125,emoji:'🎮'},
+  {sym:'GOOG',name:'Google',cg:null,base:180,emoji:'🔍'},
+  {sym:'MSFT',name:'Microsoft',cg:null,base:440,emoji:'🪟'},
+  {sym:'NFLX',name:'Netflix',cg:null,base:680,emoji:'🍿'},
+  {sym:'DIS',name:'Disney',cg:null,base:95,emoji:'🏰'},
+  {sym:'MCD',name:'McDonald\u2019s',cg:null,base:290,emoji:'🍔'},
+  {sym:'KO',name:'Coca-Cola',cg:null,base:63,emoji:'🥤'},
+  {sym:'NKE',name:'Nike',cg:null,base:75,emoji:'👟'}
+];
+/* price = base * (1 + daily wiggle). Crypto pulled live from CoinGecko (free, no key); rest simulated with a seeded daily drift so it feels real and consistent within a day. */
+function marketPrice(m){
+  if(m.live)return m.live;
+  const daySeed=seedFrom(m.sym+new Date().toDateString());
+  const drift=(mulberry(daySeed)()-0.5)*0.12; // ±6% "today"
+  return +(m.base*(1+drift)).toFixed(2);
+}
+async function refreshCrypto(){
+  const ids=MARKET.filter(m=>m.cg).map(m=>m.cg).join(',');
+  try{const r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids='+ids+'&vs_currencies=usd');
+    const d=await r.json();MARKET.forEach(m=>{if(m.cg&&d[m.cg])m.live=d[m.cg].usd;});return true;}catch(_){return false;}
+}
+function invPortfolio(){progress.invest=progress.invest||{};return progress.invest;}
+function invValue(){const p=invPortfolio();return Object.entries(p).reduce((s,[sym,units])=>{const m=MARKET.find(x=>x.sym===sym);return s+(m?units*marketPrice(m):0);},0);}
+function openInvest(){
+  if(document.querySelector('.inv'))return;
+  const o=document.createElement('div');o.className='inv';
+  o.innerHTML='<div class="inv-card"><button class="inv-close" type="button">✕</button>'+
+    '<div class="inv-head">📈 Buck\u2019s Trading Floor</div>'+
+    '<div class="inv-bal">🪙 Chips: <b class="inv-chips">'+(progress.chips||0)+'</b> · Portfolio: <b class="inv-pv">0</b> chips</div>'+
+    '<p class="inv-note">Invest chips in REAL markets. Crypto prices are LIVE; others use today\u2019s realistic estimate. Prices change daily — buy low, sell high! <b>This is pretend money for fun.</b></p>'+
+    '<div class="inv-status"></div><div class="inv-list"></div></div>';
+  document.body.appendChild(o);
+  const list=o.querySelector('.inv-list'),status=o.querySelector('.inv-status');
+  function paint(){
+    o.querySelector('.inv-chips').textContent=(progress.chips||0);
+    o.querySelector('.inv-pv').textContent=Math.round(invValue());
+    const p=invPortfolio();
+    list.innerHTML=MARKET.map(m=>{const price=marketPrice(m);const held=p[m.sym]||0;
+      return '<div class="inv-row"><span class="inv-sym">'+m.emoji+' '+m.name+(m.live?' <i class="inv-live">LIVE</i>':'')+'</span>'+
+        '<span class="inv-price">'+price.toLocaleString()+' ch</span>'+
+        '<span class="inv-held">'+(held?held.toFixed(3)+' units':'—')+'</span>'+
+        '<span class="inv-btns"><button class="inv-buy" data-s="'+m.sym+'">Buy 10</button><button class="inv-sell" data-s="'+m.sym+'" '+(held?'':'disabled')+'>Sell all</button></span></div>';
+    }).join('');
+    list.querySelectorAll('.inv-buy').forEach(b=>b.addEventListener('click',()=>{
+      const m=MARKET.find(x=>x.sym===b.dataset.s),price=marketPrice(m),spend=10;
+      if((progress.chips||0)<spend){status.textContent='Not enough chips! Win some first.';return;}
+      progress.chips-=spend;p[m.sym]=(p[m.sym]||0)+spend/price;saveProgress();updateChips();paint();sfx('coin');status.textContent='Bought '+spend+' chips of '+m.name+'.';}));
+    list.querySelectorAll('.inv-sell').forEach(b=>b.addEventListener('click',()=>{
+      const m=MARKET.find(x=>x.sym===b.dataset.s),price=marketPrice(m),units=p[m.sym]||0;if(!units)return;
+      const got=Math.round(units*price);progress.chips=(progress.chips||0)+got;delete p[m.sym];saveProgress();updateChips();paint();sfx('win');
+      status.textContent='Sold '+m.name+' for '+got+' chips!';bearShout(got>0?'Cha-ching! 📈':'Oof, sold at a loss. 📉');}));
+  }
+  paint();status.textContent='Fetching live crypto prices…';
+  refreshCrypto().then(ok=>{status.textContent=ok?'Live crypto prices loaded ✓':'Offline — using today\u2019s estimates.';paint();});
+  o.querySelector('.inv-close').addEventListener('click',()=>o.remove());
+  o.addEventListener('click',e=>{if(e.target===o)o.remove();});
+}
+/* make the HUD chip tappable */
+document.addEventListener('click',e=>{const c=e.target.closest('.hud-chips');if(c&&!isAdmin()){openInvest();}});
 
 /* ---- view switching ---- */
 const VIEWS=['homeView','gamesView','musicView','postView'];
@@ -1037,14 +1165,12 @@ const HUB_GAMES=[
   {id:'headsup',n:'🙆 Heads Up!',d:'Phone on forehead — family shouts clues! (landscape)'},
   {id:'rush',n:'⚡ Route Rush',d:'MULTIPLAYER quiz battle! 2-4 players, pass the phone.'},
   {id:'heist',n:'🕵️ Route Heist',d:'MULTIPLAYER! Answer, then MINE, HACK or SHIELD.'},
+  {id:'story',n:'📖 Story Chain',d:'Pass the phone — build a mad road-trip story together!'},
+  {id:'accent',n:'🎭 Accent Roulette',d:'Spin for a silly accent to use for 5 minutes!'},
+  {id:'doodle',n:'✏️ Doodle Duel',d:'One draws, the rest guess. Pass-and-play!'},
 ];
 function renderHub(){
   const grid=document.getElementById('hubGrid');if(!grid)return;
-  let np=document.getElementById('bearNamePick');
-  if(!np){np=document.createElement('div');np.id='bearNamePick';np.className='bear-name-pick';
-    np.innerHTML='🐻 Name the bear: <select>'+BEAR_NAMES.map(n=>'<option'+(n===BEAR_NAME?' selected':'')+'>'+n+'</option>').join('')+'</select>';
-    grid.parentNode.insertBefore(np,grid);
-    np.querySelector('select').addEventListener('change',e=>setBearName(e.target.value));}
   document.getElementById('hubStage').classList.add('hidden');grid.classList.remove('hidden');
   grid.innerHTML=HUB_GAMES.map(g=>'<button type="button" class="hub-card" data-g="'+g.id+'"><span class="hub-name">'+g.n+'</span><span class="hub-desc">'+g.d+'</span></button>').join('');
   grid.querySelectorAll('.hub-card').forEach(b=>b.addEventListener('click',()=>openHubGame(b.dataset.g)));
@@ -1055,7 +1181,7 @@ function openHubGame(id){
   document.getElementById('hubGrid').classList.add('hidden');
   const st=document.getElementById('hubStage');st.classList.remove('hidden');
   const body=document.getElementById('hubBody');body.innerHTML='';
-  ({breaker:hubBreaker,roadle:hubRoadle,ttt:hubTTT,headsup:hubHeadsUp,rush:hubRush,heist:hubHeist})[id](body);
+  ({breaker:hubBreaker,roadle:hubRoadle,ttt:hubTTT,headsup:hubHeadsUp,rush:hubRush,heist:hubHeist,story:hubStory,accent:hubAccent,doodle:hubDoodle})[id](body);
   window.scrollTo(0,0);
 }
 /* --- Brick breaker (9) --- */
