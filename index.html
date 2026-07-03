@@ -49,7 +49,7 @@
       <button type="button" class="vtab" data-view="gamesView">🎮 Games</button>
       <button type="button" class="vtab" data-view="musicView">🎵 Music</button>
       <button type="button" class="vtab" data-view="postView">📮 Postcards</button>
-      <button type="button" class="vtab" data-view="charView">🧍 Me</button>
+      <button type="button" class="vtab" data-view="charView">🧍 My Character</button>
     </nav>
 
     <!-- HOME / MAP VIEW -->
@@ -116,9 +116,13 @@
     <section id="musicView" class="hidden">
       <div class="hub-head"><h2>🎵 Music</h2><p class="hub-earn">Type a song — opens it on YouTube Music (needs internet)</p></div>
       <div class="music-box">
-        <input id="musicInput" placeholder="e.g. Life is a Highway" />
-        <button id="musicBtn" class="btn btn-primary" type="button">▶️ Find song</button>
-        <div class="music-quick"><b>Road trip classics:</b> <span class="mq">Life is a Highway</span><span class="mq">Route 66</span><span class="mq">Take It Easy</span><span class="mq">Viva Las Vegas</span><span class="mq">On The Road Again</span></div>
+        <div class="music-search"><input id="musicInput" placeholder="Type any song, e.g. Life is a Highway" /><button id="musicBtn" class="btn btn-primary" type="button">▶️ Play</button></div>
+        <div class="music-quick"><b>Road trip classics:</b> <span class="mq">Life is a Highway</span><span class="mq">Route 66</span><span class="mq">Take It Easy</span><span class="mq">Viva Las Vegas</span><span class="mq">On The Road Again</span><span class="mq">Born to be Wild</span><span class="mq">Sweet Home Alabama</span></div>
+        <div class="music-player">
+          <iframe id="musicFrame" class="hidden" allow="autoplay; encrypted-media" allowfullscreen frameborder="0"></iframe>
+          <p id="musicNote" class="music-note">Type a song and hit Play — it streams right here in the app. 🎵</p>
+          <a id="musicOpen" class="music-open hidden" target="_blank" rel="noopener">Song won’t play? Open on YouTube ↗</a>
+        </div>
       </div>
     </section>
 
@@ -130,7 +134,7 @@
 
     <!-- CHARACTER / LOCKER -->
     <section id="charView" class="hidden">
-      <div class="hub-head"><h2>🧍 Your Character</h2><p class="hub-earn">Earn 🪙 chips in games, then dress up! Chips are worth real money — spend wisely.</p></div>
+      <div class="hub-head"><h2>🧍 My Character</h2><p class="hub-earn">Earn 🪙 chips in games, then dress up! Chips are worth real money — spend wisely.</p></div>
       <div class="char-wrap">
         <div class="char-stage">
           <div id="charAvatar" class="char-avatar"></div>
