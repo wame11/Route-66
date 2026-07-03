@@ -306,7 +306,7 @@ tbody tr:nth-child(1) td{font-weight:900;color:var(--orange-deep)}
 @media(max-width:520px){.level-node.up{margin-bottom:96px}.level-node.down{margin-top:96px}}
 
 /* ===== CORNER MASCOT: everywhere, bottom-right, mobile/iPad safe ===== */
-.corner-mascot{position:fixed;right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));z-index:60;pointer-events:none;filter:drop-shadow(0 4px 6px rgba(59,26,71,.35));animation:mascotbob 2.2s ease-in-out infinite}
+.corner-mascot{position:fixed;right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));z-index:60;pointer-events:auto;cursor:pointer;filter:drop-shadow(0 4px 6px rgba(59,26,71,.35));animation:mascotbob 2.2s ease-in-out infinite;border:0;background:transparent;padding:0;-webkit-tap-highlight-color:transparent}.corner-mascot:active{transform:scale(.92)}.corner-mascot svg,.corner-mascot .bear-bubble{pointer-events:none}.mascot-tap{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);white-space:nowrap;background:var(--gold);color:var(--asphalt);border:2px solid var(--asphalt);border-radius:999px;font-size:.55rem;font-weight:900;letter-spacing:.06em;padding:2px 8px;box-shadow:0 2px 0 var(--asphalt);pointer-events:none;text-transform:uppercase;animation:tappulse 1.6s ease-in-out infinite}@keyframes tappulse{0%,100%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.08)}}
 @keyframes mascotbob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-6px) rotate(2deg)}}
 .corner-mascot .bear-lids{animation:blink 4.2s infinite}
 @keyframes blink{0%,91%,100%{opacity:0}94%,96%{opacity:1}}
@@ -344,3 +344,34 @@ tbody tr:nth-child(1) td{font-weight:900;color:var(--orange-deep)}
 .jp-count{margin-top:18px;font-size:clamp(2rem,9vw,3.6rem);font-weight:900;color:#9cf29c;text-shadow:0 0 18px rgba(120,255,120,.7);font-variant-numeric:tabular-nums}
 .jp-coin{position:fixed;top:-60px;z-index:201;animation:coinfall linear forwards;pointer-events:none;filter:drop-shadow(0 3px 4px rgba(0,0,0,.5))}
 @keyframes coinfall{to{transform:translateY(115vh) rotate(720deg)}}
+
+
+/* ===== jackpot $15 crash ===== */
+.jp-count.crash{animation:crashdown .5s cubic-bezier(.3,1.6,.5,1);color:#ffc24b;text-shadow:0 0 18px rgba(255,194,75,.8)}
+.jp-count.crash:after{content:" 🌴";font-size:.8em}
+@keyframes crashdown{0%{transform:scale(1.6) rotate(-4deg)}60%{transform:scale(.85)}100%{transform:scale(1)}}
+
+/* ===== Bear's Bonus Den ===== */
+.den{position:fixed;inset:0;z-index:150;background:rgba(36,26,34,.8);display:grid;place-items:center;padding:14px;overflow:auto}
+.den-card{position:relative;width:min(560px,100%);background:linear-gradient(180deg,#3b1a47,#241a22);border:5px solid var(--gold);border-radius:22px;box-shadow:0 0 50px rgba(255,194,75,.35);padding:20px;color:#fff;animation:jptitle .35s cubic-bezier(.2,1.6,.4,1)}
+.den-card.shake{animation:jpshake .35s ease}
+.den-close{position:absolute;top:10px;right:12px;width:38px;height:38px;border-radius:50%;border:3px solid var(--gold);background:#241a22;color:var(--gold);font-weight:900;font-size:1rem}
+.den-head{text-align:center;font-size:1.35rem;font-weight:900;color:var(--gold);letter-spacing:.06em;text-shadow:0 0 14px rgba(255,194,75,.6)}
+.den-balance{text-align:center;font-weight:900;margin:8px 0 12px;font-size:1.1rem}
+.den-balance b{color:#9cf29c;font-size:1.3rem}
+.den-wager{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:14px;font-weight:900;align-items:center}
+.den-bet{min-width:52px;padding:8px 10px;border-radius:10px;border:3px solid var(--gold);background:transparent;color:var(--gold);font-weight:900}
+.den-bet.on{background:var(--gold);color:var(--asphalt)}
+.den-games{display:grid;gap:12px}
+.den-game{border:2px solid rgba(255,194,75,.4);border-radius:14px;padding:12px;text-align:center;background:rgba(0,0,0,.25)}
+.den-game h4{margin:0 0 8px;color:var(--gold);text-transform:uppercase;letter-spacing:.05em;font-size:.9rem}
+.den-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.den-row .btn{min-height:42px;padding:8px 14px;font-size:.8rem}
+.den-coin{width:64px;height:64px;margin:0 auto 10px;border-radius:50%;display:grid;place-items:center;font-size:1.7rem;font-weight:900;background:radial-gradient(circle at 35% 30%,#fff,var(--gold));color:var(--asphalt);border:3px solid #b8860b}
+.den-coin.flip{animation:coinspin .3s linear infinite}
+.den-dice{display:flex;gap:12px;justify-content:center;align-items:center;font-size:2.6rem;margin-bottom:10px}
+.den-dice .d-vs{font-size:.85rem;font-weight:900;color:var(--gold)}
+.den-wheel{font-size:2.6rem;margin-bottom:10px}
+.den-msg{text-align:center;font-weight:900;min-height:1.4em;margin:12px 0 0;color:#ffe9bd}
+.hud-chips b{color:var(--purple)}
+@media(min-width:560px){.den-games{grid-template-columns:1fr 1fr 1fr}}
