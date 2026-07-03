@@ -375,3 +375,30 @@ tbody tr:nth-child(1) td{font-weight:900;color:var(--orange-deep)}
 .den-msg{text-align:center;font-weight:900;min-height:1.4em;margin:12px 0 0;color:#ffe9bd}
 .hud-chips b{color:var(--purple)}
 @media(min-width:560px){.den-games{grid-template-columns:1fr 1fr 1fr}}
+
+
+/* ===== $$$ vault button ===== */
+.vault-btn{position:relative;width:min(260px,100%);margin:14px auto 8px;display:grid;gap:2px;place-items:center;padding:14px 18px;border:4px solid var(--asphalt);border-radius:16px;background:linear-gradient(180deg,var(--gold),var(--orange));color:var(--asphalt);box-shadow:0 6px 0 var(--asphalt),0 0 26px rgba(255,194,75,.5);opacity:.45;transition:transform .12s}
+.vault-btn:not(:disabled){opacity:1;animation:vaultglow 1.4s ease-in-out infinite alternate;cursor:pointer}
+.vault-btn:not(:disabled):hover{transform:translateY(-3px)}
+.vault-btn:not(:disabled):active{transform:translateY(2px)}
+@keyframes vaultglow{from{box-shadow:0 6px 0 var(--asphalt),0 0 14px rgba(255,194,75,.4)}to{box-shadow:0 6px 0 var(--asphalt),0 0 40px rgba(255,194,75,.9)}}
+.vault-cash{font-size:2rem;font-weight:950;letter-spacing:.05em}
+.vault-label{font-size:.72rem;font-weight:900;letter-spacing:.2em}
+
+/* ===== MEGA BEAR celebration ===== */
+.corner-mascot.mega{animation:megabear 1.8s cubic-bezier(.34,1.56,.64,1) forwards;z-index:190}
+@keyframes megabear{
+  0%{transform:scale(1) rotate(0);filter:drop-shadow(0 4px 6px rgba(59,26,71,.35))}
+  18%{transform:scale(3.1) translate(-14%,-14%) rotate(-8deg);filter:drop-shadow(0 0 34px rgba(255,194,75,.95))}
+  32%{transform:scale(2.7) translate(-13%,-12%) rotate(6deg)}
+  46%{transform:scale(2.95) translate(-14%,-13%) rotate(-4deg)}
+  60%{transform:scale(2.8) translate(-13%,-12%) rotate(2deg);filter:drop-shadow(0 0 30px rgba(255,194,75,.9))}
+  100%{transform:scale(1) rotate(0);filter:drop-shadow(0 4px 6px rgba(59,26,71,.35))}
+}
+
+/* instructions */
+.arcade-instr{display:block;margin-top:6px;font-size:.78rem;font-weight:700;color:var(--muted);text-transform:none;letter-spacing:0;line-height:1.4}
+.den-instr{margin:8px 0 0;font-size:.72rem;font-weight:700;color:#d9c39a;text-align:center;line-height:1.5}
+.chip-champ{font-weight:800;color:var(--ink);background:rgba(240,168,48,.18);border:2px dashed var(--orange);border-radius:var(--radius-sm);padding:10px 12px;line-height:1.5;font-size:.9rem}
+.chip-champ:empty{display:none}
