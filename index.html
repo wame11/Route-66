@@ -4,8 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Route 66 Family Challenge</title>
-  <link rel="stylesheet" href="/Route-66/styles.css" />
-  <link rel="manifest" href="/Route-66/manifest.json" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-180.png" />
+  <link rel="icon" href="icon-192.png" />
   <meta name="theme-color" content="#e8651f" />
 </head>
 <body>
@@ -53,6 +55,7 @@
           <div class="hud-caption" id="hudCaption"></div>
         </div>
         <div class="hud-score"><span class="coin">🪙</span><b id="hudScore">0</b><span>points</span></div>
+        <div class="hud-score hud-chips"><span>🐻</span><b id="hudChips">0</b><span>chips</span></div>
       </div>
 
       <div class="map-head">
@@ -66,7 +69,7 @@
         <h2>Treasure Vault</h2>
         <p id="rewardText">Clear every stop to unlock the final prize!</p>
         <button id="amazonBtn" class="amazon" type="button" disabled><span>amazon</span><i aria-hidden="true"></i></button>
-        <p id="voucher" class="voucher hidden">Speak to Ethan for your £15 Amazon voucher!</p>
+        <p id="voucher" class="voucher hidden">Speak to Ethan for your $15 Amazon voucher — to spend in California! 🌴</p>
       </section>
 
       <section id="adminPanel" class="admin-panel hidden">
@@ -95,12 +98,11 @@
     </section>
   </main>
 
-  <script src="/Route-66/stops.js"></script>
-  <script src="/Route-66/app.js"></script>
+  <script src="stops.js"></script>
+  <script src="app.js"></script>
   <script>
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('/Route-66/service-worker.js');
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js');
   </script>
-
   <div id="cornerMascot" class="corner-mascot hidden" aria-hidden="true">
     <div id="bearBubble" class="bear-bubble"></div>
     <svg viewBox="0 0 120 120" width="86" height="86">
@@ -121,9 +123,12 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('/Route-66/se
           <stop offset="0%" stop-color="#6b4a2e"/><stop offset="55%" stop-color="#241a10"/><stop offset="100%" stop-color="#000"/>
         </radialGradient>
       </defs>
+      <!-- ears -->
       <g class="bear-ear-l"><circle cx="30" cy="26" r="16" fill="url(#furEar)"/><circle cx="32" cy="28" r="8" fill="#b98a5a" opacity=".85"/></g>
       <g class="bear-ear-r"><circle cx="90" cy="26" r="16" fill="url(#furEar)"/><circle cx="88" cy="28" r="8" fill="#b98a5a" opacity=".85"/></g>
+      <!-- head -->
       <ellipse cx="60" cy="62" rx="44" ry="41" fill="url(#furHead)"/>
+      <!-- fur texture strokes -->
       <g stroke="#4a2e17" stroke-width="1.6" stroke-linecap="round" opacity=".55">
         <path d="M24 48c3-4 7-6 11-7M20 62c3-2 6-3 9-3M25 78c3 0 6 1 8 3"/>
         <path d="M96 48c-3-4-7-6-11-7M100 62c-3-2-6-3-9-3M95 78c-3 0-6 1-8 3"/>
@@ -132,12 +137,17 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('/Route-66/se
       <g stroke="#b98a5a" stroke-width="1.3" stroke-linecap="round" opacity=".5">
         <path d="M30 52c3-3 6-4 9-5M90 52c-3-3-6-4-9-5M38 32c2-2 4-3 7-4M82 32c-2-2-4-3-7-4"/>
       </g>
+      <!-- brow shading -->
       <path d="M34 46c6-6 14-9 26-9s20 3 26 9" fill="none" stroke="#54351b" stroke-width="5" opacity=".5" stroke-linecap="round"/>
+      <!-- muzzle -->
       <ellipse cx="60" cy="78" rx="22" ry="17" fill="url(#muzzle)"/>
       <path d="M42 74c4 8 12 12 18 12s14-4 18-12" fill="none" stroke="#8a5f38" stroke-width="1.5" opacity=".6"/>
+      <!-- nose -->
       <ellipse cx="60" cy="72" rx="9.5" ry="7" fill="url(#nose)"/>
       <ellipse cx="56.5" cy="69.5" rx="3" ry="1.8" fill="#7d6a5e" opacity=".8"/>
+      <!-- mouth -->
       <path d="M60 79v5M60 84c-3.5 3.5-8.5 3-11-1M60 84c3.5 3.5 8.5 3 11-1" stroke="#241a15" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+      <!-- eyes -->
       <g class="bear-eyes">
         <ellipse cx="45" cy="54" rx="6" ry="6.8" fill="url(#eyeShine)"/>
         <ellipse cx="75" cy="54" rx="6" ry="6.8" fill="url(#eyeShine)"/>
@@ -146,9 +156,12 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('/Route-66/se
         <circle cx="47" cy="56" r="1" fill="#fff" opacity=".55"/>
         <circle cx="77" cy="56" r="1" fill="#fff" opacity=".55"/>
       </g>
+      <!-- eyelids for blink -->
       <g class="bear-lids" opacity="0"><ellipse cx="45" cy="54" rx="6.4" ry="7" fill="#7a4f2a"/><ellipse cx="75" cy="54" rx="6.4" ry="7" fill="#7a4f2a"/></g>
+      <!-- cheek highlights -->
       <ellipse cx="34" cy="66" rx="7" ry="4.5" fill="#b98a5a" opacity=".35"/>
       <ellipse cx="86" cy="66" rx="7" ry="4.5" fill="#b98a5a" opacity=".35"/>
+      <!-- waving paw -->
       <g class="bear-wave">
         <ellipse cx="104" cy="86" rx="11" ry="13" fill="url(#furEar)"/>
         <g fill="#c69763"><circle cx="99" cy="79" r="2.6"/><circle cx="104" cy="77.5" r="2.6"/><circle cx="109" cy="79.5" r="2.6"/><ellipse cx="104" cy="87" rx="5.5" ry="4.5"/></g>
