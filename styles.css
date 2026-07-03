@@ -606,3 +606,28 @@ tbody tr:nth-child(1) td{font-weight:900;color:var(--orange-deep)}
 #musicFrame{width:100%;aspect-ratio:16/9;border:3px solid var(--asphalt);border-radius:var(--radius-sm);background:#000;display:block}
 .music-note{text-align:center;color:var(--muted);font-weight:800;padding:20px}
 .music-open{display:inline-block;margin-top:10px;color:var(--orange-deep);font-weight:900;text-decoration:none}
+
+
+/* ===== CHARACTER 2.0: 3D locker stage ===== */
+.char-stage{background:radial-gradient(ellipse at 50% 85%,rgba(240,168,48,.5),transparent 60%),linear-gradient(180deg,#3b1a47,#241a22);border-color:var(--gold);color:#fff;overflow:hidden}
+.char-spotlight{position:absolute;left:50%;top:-30%;width:120%;height:90%;transform:translateX(-50%);background:radial-gradient(ellipse at 50% 0%,rgba(255,233,189,.28),transparent 65%);pointer-events:none}
+.char-avatar{cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none;transition:filter .3s;will-change:transform}
+.char-avatar:active{cursor:grabbing}
+.char-avatar.previewing{filter:drop-shadow(0 0 24px rgba(255,194,75,.9))}
+.char-name{font-weight:900;font-size:1rem;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;margin-top:6px}
+.char-stage .char-chipbar{color:#ffe9bd}
+.char-stage .char-chipbar b{color:var(--gold)}
+.char-buybar{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:10px;padding:10px;background:rgba(255,194,75,.14);border:2px dashed var(--gold);border-radius:12px;font-weight:900;font-size:.85rem}
+.char-buybar .btn{min-height:40px;padding:8px 14px;font-size:.78rem}
+.char-hint{font-size:.72rem;color:#d9c39a;font-weight:800;margin:8px 0 0}
+.shop-item.previewing{outline:4px solid var(--gold);outline-offset:-4px;animation:legshine 1.2s ease-in-out infinite}
+/* music card */
+.music-card{display:flex;gap:14px;align-items:center;background:#fffaf0;border:3px solid var(--asphalt);border-radius:var(--radius-sm);padding:12px}
+.music-art{width:96px;height:96px;border-radius:12px;border:2px solid var(--asphalt);flex:0 0 auto}
+.music-meta{display:grid;gap:6px;min-width:0;flex:1}
+.music-meta b{font-size:1.05rem}
+.music-meta span{color:var(--muted);font-weight:700;font-size:.85rem}
+.music-meta audio{width:100%}
+.music-small{font-size:.72rem !important}
+.music-small a{color:var(--orange-deep);font-weight:900}
+.music-frame{width:100%;aspect-ratio:16/9;border:3px solid var(--asphalt);border-radius:var(--radius-sm);background:#000;display:block}
