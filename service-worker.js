@@ -1,4 +1,4 @@
-const CACHE_NAME = 'route66-v4';
+const CACHE_NAME = 'route66-v5';
 const ASSETS = [
   './',
   './index.html',
@@ -16,15 +16,22 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((names) =>
       Promise.all(names.filter((n) => n !== CACHE_NAME).map((n) => caches.delete(n)))
-    ).then(() => clients.claim())
+    ).then(() => self.clients.claim())
   );
 });
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   event.respondWith(
-    caches.match(event.request, { ignoreSearch: true })
-      .then((r) => r || fetch(event.request))
-      .catch(() => caches.match('./index.html'))
+    fetch(event.request)
+      .then((response) => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then((c) => c.put(event.request, copy)).catch(() => {});
+        return response;
+      })
+      .catch(() =>
+        caches.match(event.request, { ignoreSearch: true })
+          .then((r) => r || caches.match('./index.html'))
+      )
   );
 });
