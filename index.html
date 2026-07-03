@@ -68,14 +68,15 @@
         <p class="eyebrow">Final unlock</p>
         <h2>Treasure Vault</h2>
         <p id="rewardText">Clear every stop to unlock the final prize!</p>
-        <button id="amazonBtn" class="amazon" type="button" disabled><span>amazon</span><i aria-hidden="true"></i></button>
-        <p id="voucher" class="voucher hidden">Speak to Ethan for your $15 Amazon voucher — to spend in California! 🌴</p>
+        <button id="amazonBtn" class="vault-btn" type="button" disabled><span class="vault-cash">💰 $$$ 💰</span><span class="vault-label">CRACK THE VAULT</span></button>
+        <p id="voucher" class="voucher hidden">Speak to Ethan for your $15 CASH — spend it on anything in America! 🇺🇸 And the family CHIP CHAMPION wins a 30-second shop dash (grab anything, up to £15)! 🏃💨</p>
       </section>
 
       <section id="adminPanel" class="admin-panel hidden">
         <div class="section-head"><h2>Approval queue</h2>
           <button id="adminRefreshBtn" class="btn btn-quiet" type="button">Refresh</button></div>
         <p id="sheetStatus" class="sync-status"></p>
+        <p id="chipChamp" class="chip-champ"></p>
         <div id="adminRows" class="admin-rows"></div>
         <p id="adminEmpty" class="empty">No missions are waiting for approval.</p>
       </section>
@@ -84,7 +85,7 @@
         <div class="section-head"><h2>Leaderboard</h2>
           <button id="exportCsvBtn" class="btn btn-quiet" type="button">Export CSV</button></div>
         <div class="table-wrap"><table>
-          <thead><tr><th>#</th><th>Name</th><th>Points</th><th>Stops</th></tr></thead>
+          <thead><tr><th>#</th><th>Name</th><th>Points</th><th>Stops</th><th>🪙 Chips</th></tr></thead>
           <tbody id="leaderboardRows"></tbody>
         </table></div>
         <p id="leaderboardEmpty" class="empty">No scores yet.</p>
