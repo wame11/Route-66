@@ -786,7 +786,37 @@ els.backBtn.addEventListener('click',showHome);
 els.syncBtn.addEventListener('click',syncShared);
 els.adminRefreshBtn.addEventListener('click',syncShared);
 els.exportCsvBtn.addEventListener('click',exportCsv);
-els.amazonBtn.addEventListener('click',()=>{if(!els.amazonBtn.disabled)els.voucher.classList.remove('hidden');});
+els.amazonBtn.addEventListener('click',()=>{if(!els.amazonBtn.disabled)jackpot(()=>els.voucher.classList.remove('hidden'));});
+/* ===== 10-second Vegas JACKPOT sequence ===== */
+function jackpot(done){
+  if(document.querySelector('.jackpot'))return;
+  const o=document.createElement('div');o.className='jackpot';
+  o.innerHTML='<div class="jp-lights"></div>'+
+    '<div class="jp-inner">'+
+      '<div class="jp-reels"><span>7</span><span>7</span><span>7</span></div>'+
+      '<div class="jp-title">JACKPOT!</div>'+
+      '<div class="jp-sub">ROAD TRIP CHAMPION</div>'+
+      '<div class="jp-count">$<b>0</b></div>'+
+    '</div>';
+  document.body.appendChild(o);
+  /* coin + confetti rain */
+  const EM=['🪙','💰','⭐','💎','🎉','🍒','🔔'];
+  const rain=setInterval(()=>{for(let i=0;i<6;i++){const s=document.createElement('span');s.className='jp-coin';s.textContent=EM[Math.floor(Math.random()*EM.length)];
+    s.style.left=Math.random()*100+'vw';s.style.animationDuration=(1.6+Math.random()*1.8)+'s';s.style.fontSize=(1.2+Math.random()*2)+'rem';
+    o.appendChild(s);setTimeout(()=>s.remove(),3600);}},130);
+  /* money counter rolls up to 1,000,000 over ~7s */
+  const cEl=o.querySelector('.jp-count b');const t0=Date.now();
+  const count=setInterval(()=>{const p=Math.min(1,(Date.now()-t0)/7000);
+    cEl.textContent=Math.floor(1000000*p*p).toLocaleString();
+    if(p>=1)clearInterval(count);},50);
+  /* reels land one by one */
+  const reels=[...o.querySelectorAll('.jp-reels span')];
+  reels.forEach((r,i)=>{r.classList.add('spin');setTimeout(()=>{r.classList.remove('spin');r.classList.add('land');},900+i*800);});
+  setTimeout(()=>o.querySelector('.jp-title').classList.add('show'),3400);
+  setTimeout(()=>o.querySelector('.jp-sub').classList.add('show'),4100);
+  /* end after 10s */
+  setTimeout(()=>{clearInterval(rain);o.classList.add('out');setTimeout(()=>{o.remove();if(done)done();},600);},10000);
+}
 /* talking bear mascot */
 const BEAR_LINES=['Let\u2019s hit the road! \ud83d\udea6','Beat my high score\u2026 if you can!','Snap those photos! \ud83d\udcf8','Route 66, here we come!','I smell snacks\u2026 \ud83c\udf6b','Don\u2019t poke the burros!','Tap the glowing stop!','Grrreat driving, team!','Are we there yet? \ud83d\ude02','Watch out for meteors! \u2604\ufe0f','I bet Lily wins this one\u2026','Jacob, is that your best score?!','Bears LOVE scavenger hunts.','The Grand Canyon is GRRRAND.','Vegas lights, here I come! \ud83c\udfb0','Don\u2019t feed me\u2026 feed the leaderboard!','5 games per stop \u2014 beat them ALL!','Hannah\u2019s coming for first place!','Ethan built all this. Show off. \ud83d\ude0f','Photo of EVERY hunt item, no cheating!','My cousin lives at Bearizona!','Fastest paws in the West. \ud83d\udc3e','Bonus points for extra wins!','Horseshoe Bend \u2014 stay back from the edge!','I call shotgun! \ud83d\ude97','Winner gets\u2026 my respect. And points.','Simon says\u2026 tap faster!','Jackpot!! Oh wait, wrong game.','Stretch those tapping fingers!','11 hours on a plane? Wake me in LA.'];
 let bearTimer=null,bearIdx=-1;
