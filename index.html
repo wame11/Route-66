@@ -133,6 +133,11 @@
     <!-- CHARACTER / LOCKER -->
     <section id="charView" class="hidden">
       <div class="hub-head"><h2>🧍 My Character</h2><p class="hub-earn">Earn 🪙 chips in games, then dress up! Chips are worth real money — spend wisely.</p></div>
+      <div class="season-wrap">
+        <div class="section-head"><h2>🎟️ Season Pass — Route 66 Tour</h2><span id="seasonTierLbl" class="season-lbl"></span></div>
+        <p class="hub-earn">Every 50 chips you EARN pushes you up a tier and unlocks a reward. (Spending doesn’t lower it!)</p>
+        <div id="seasonTrack" class="season-track"></div>
+      </div>
       <div class="char-wrap">
         <div class="char-stage">
           <div class="char-spotlight"></div>
@@ -140,7 +145,6 @@
           <div id="charName" class="char-name"></div>
           <div class="char-chipbar">🪙 <b id="charChips">0</b> chips</div>
           <div id="charBuyBar" class="char-buybar hidden"></div>
-          <button id="rpmBtn" class="btn btn-primary rpm-btn" type="button">🧍 Create my REAL 3D avatar!</button>
           <p class="char-hint">👆 Drag to spin · pinch to zoom (3D mode) · needs internet for 3D</p>
         </div>
         <div class="char-shop">
@@ -149,11 +153,6 @@
         </div>
       </div>
 
-      <div class="season-wrap">
-        <div class="section-head"><h2>🎟️ Season Pass — Route 66 Tour</h2><span id="seasonTierLbl" class="season-lbl"></span></div>
-        <p class="hub-earn">Every 50 chips you EARN pushes you up a tier and unlocks a reward. (Spending doesn’t lower it!)</p>
-        <div id="seasonTrack" class="season-track"></div>
-      </div>
     </section>
 
     <!-- LEVEL VIEW -->
