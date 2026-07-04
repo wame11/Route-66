@@ -795,7 +795,7 @@ function syncPlayer(){
       chipsEarned:progress.chipsEarned||0,
       seasonTier:seasonTier,
       stops:STOPS.filter(s=>statusForStop(s.id)==='approved').length,
-      character:JSON.stringify({equip:(progress.char&&progress.char.equip)||{},rpm:progress.rpmUrl||''})
+      character:JSON.stringify((progress.char&&progress.char.equip)||{})
     }});
   },1500);
 }
@@ -1113,251 +1113,160 @@ document.addEventListener('click',e=>{const c=e.target.closest('.hud-chips');if(
 
 /* ===== CHARACTER + ITEM SHOP + SEASON PASS ===== */
 /* Items: id, name, price, category, and how they paint on the avatar. rarity sets the card colour. */
-const SHOP_ITEMS=[
-  /* Body */
-  {id:'skin_light',cat:'Body',name:'Light',price:0,rar:'free',skin:'#f1c9a5'},
-  {id:'skin_tan',cat:'Body',name:'Tan',price:0,rar:'free',skin:'#e0ac69'},
-  {id:'skin_brown',cat:'Body',name:'Brown',price:0,rar:'free',skin:'#a56b46'},
-  {id:'skin_deep',cat:'Body',name:'Deep',price:0,rar:'free',skin:'#7a4a2b'},
-  /* Hair */
-  {id:'hair_short_brown',cat:'Hair',name:'Short Brown',price:0,rar:'free',hair:'#5a3a1a',hairstyle:'short'},
-  {id:'hair_short_black',cat:'Hair',name:'Short Black',price:0,rar:'free',hair:'#1c1c22',hairstyle:'short'},
-  {id:'hair_short_blonde',cat:'Hair',name:'Short Blonde',price:15,rar:'common',hair:'#e6c86a',hairstyle:'short'},
-  {id:'hair_long_blonde',cat:'Hair',name:'Long Blonde',price:20,rar:'common',hair:'#e6c86a',hairstyle:'long'},
-  {id:'hair_long_black',cat:'Hair',name:'Long Black',price:20,rar:'common',hair:'#1c1c22',hairstyle:'long'},
-  {id:'hair_long_brown',cat:'Hair',name:'Long Brown',price:20,rar:'common',hair:'#5a3a1a',hairstyle:'long'},
-  {id:'hair_pony_red',cat:'Hair',name:'Red Ponytail',price:40,rar:'rare',hair:'#c0431a',hairstyle:'pony'},
-  {id:'hair_pony_black',cat:'Hair',name:'Black Ponytail',price:40,rar:'rare',hair:'#1c1c22',hairstyle:'pony'},
-  {id:'hair_bun_pink',cat:'Hair',name:'Pink Bun',price:60,rar:'rare',hair:'#e86fae',hairstyle:'bun'},
-  {id:'hair_bun_brown',cat:'Hair',name:'Brown Bun',price:45,rar:'rare',hair:'#5a3a1a',hairstyle:'bun'},
-  {id:'hair_spike_blue',cat:'Hair',name:'Blue Spikes',price:80,rar:'epic',hair:'#3a7bd5',hairstyle:'spike'},
-  {id:'hair_spike_green',cat:'Hair',name:'Green Spikes',price:80,rar:'epic',hair:'#4f9a3a',hairstyle:'spike'},
-  {id:'hair_curly_purple',cat:'Hair',name:'Purple Curls',price:80,rar:'epic',hair:'#8a4d9e',hairstyle:'curly'},
-  {id:'hair_curly_black',cat:'Hair',name:'Black Curls',price:50,rar:'rare',hair:'#1c1c22',hairstyle:'curly'},
-  {id:'hair_rainbow',cat:'Hair',name:'Rainbow Waves 🌈',price:140,rar:'legendary',hair:'rainbow',hairstyle:'long'},
-  /* Tops */
-  {id:'shirt_red',cat:'Tops',name:'Red Tee',price:0,rar:'free',shirt:'#e0654f'},
-  {id:'shirt_white',cat:'Tops',name:'White Tee',price:0,rar:'free',shirt:'#f2ede3'},
-  {id:'shirt_teal',cat:'Tops',name:'Teal Tee',price:15,rar:'common',shirt:'#3aa79a'},
-  {id:'shirt_yellow',cat:'Tops',name:'Sunshine Tee',price:15,rar:'common',shirt:'#f0c030'},
-  {id:'shirt_r66',cat:'Tops',name:'Route 66 Tee',price:35,rar:'rare',shirt:'#241a22',logo:'66'},
-  {id:'shirt_dress_pink',cat:'Tops',name:'Pink Dress',price:50,rar:'rare',shirt:'#e86fae',dress:true},
-  {id:'shirt_dress_purple',cat:'Tops',name:'Purple Dress',price:50,rar:'rare',shirt:'#8a4d9e',dress:true},
-  {id:'shirt_dress_sun',cat:'Tops',name:'Sunflower Dress',price:65,rar:'epic',shirt:'#f0c030',dress:true},
-  {id:'shirt_hoodie',cat:'Tops',name:'Cool Hoodie',price:60,rar:'rare',shirt:'#444a63',hood:true},
-  {id:'shirt_hoodie_pink',cat:'Tops',name:'Pink Hoodie',price:60,rar:'rare',shirt:'#e86fae',hood:true},
-  {id:'shirt_denim',cat:'Tops',name:'Denim Jacket',price:70,rar:'epic',shirt:'#5a7ba8'},
-  {id:'shirt_leather',cat:'Tops',name:'Leather Jacket',price:90,rar:'epic',shirt:'#2b2126'},
-  {id:'shirt_hawaii',cat:'Tops',name:'Hawaiian Shirt',price:55,rar:'rare',shirt:'#3aa79a',pattern:'flower'},
-  {id:'shirt_gold',cat:'Tops',name:'Golden Suit ✨',price:150,rar:'legendary',shirt:'#f0a830',glow:true},
-  {id:'shirt_rainbow',cat:'Tops',name:'Rainbow Tee 🌈',price:120,rar:'legendary',shirt:'rainbow'},
-  /* Bottoms */
-  {id:'pants_jeans',cat:'Bottoms',name:'Blue Jeans',price:0,rar:'free',pants:'#4a6a96'},
-  {id:'pants_black',cat:'Bottoms',name:'Black Joggers',price:15,rar:'common',pants:'#2b2b33'},
-  {id:'pants_shorts',cat:'Bottoms',name:'Khaki Shorts',price:20,rar:'common',pants:'#c4a978',shorts:true},
-  {id:'pants_shorts_red',cat:'Bottoms',name:'Red Shorts',price:20,rar:'common',pants:'#c0431a',shorts:true},
-  {id:'pants_skirt',cat:'Bottoms',name:'Denim Skirt',price:35,rar:'rare',pants:'#5a7ba8',skirt:true},
-  {id:'pants_skirt_pink',cat:'Bottoms',name:'Pink Skirt',price:35,rar:'rare',pants:'#e86fae',skirt:true},
-  {id:'pants_camo',cat:'Bottoms',name:'Camo Pants',price:55,rar:'epic',pants:'#5f6f4a'},
-  {id:'pants_gold',cat:'Bottoms',name:'Gold Trousers ✨',price:110,rar:'legendary',pants:'#f0a830'},
-  /* Shoes */
-  {id:'shoes_white',cat:'Shoes',name:'White Trainers',price:0,rar:'free',shoes:'#f2ede3'},
-  {id:'shoes_red',cat:'Shoes',name:'Red Sneakers',price:20,rar:'common',shoes:'#e0654f'},
-  {id:'shoes_boots',cat:'Shoes',name:'Cowboy Boots',price:45,rar:'rare',shoes:'#8a5a33',boots:true},
-  {id:'shoes_pink',cat:'Shoes',name:'Pink Trainers',price:25,rar:'common',shoes:'#e86fae'},
-  {id:'shoes_flip',cat:'Shoes',name:'Flip Flops',price:15,rar:'common',shoes:'#3aa79a',flip:true},
-  {id:'shoes_gold',cat:'Shoes',name:'Golden Kicks ✨',price:100,rar:'legendary',shoes:'#f0a830'},
-  /* Hats */
-  {id:'hat_none',cat:'Hat',name:'No Hat',price:0,rar:'free',hat:null},
-  {id:'hat_cowboy',cat:'Hat',name:'Cowboy Hat',price:40,rar:'common',hat:'cowboy'},
-  {id:'hat_cap',cat:'Hat',name:'Baseball Cap',price:30,rar:'common',hat:'cap'},
-  {id:'hat_cap_back',cat:'Hat',name:'Backwards Cap',price:35,rar:'common',hat:'capback'},
-  {id:'hat_crown',cat:'Hat',name:'Golden Crown 👑',price:200,rar:'legendary',hat:'crown'},
-  {id:'hat_bow',cat:'Hat',name:'Pink Bow',price:35,rar:'common',hat:'bow'},
-  {id:'hat_party',cat:'Hat',name:'Party Hat',price:45,rar:'rare',hat:'party'},
-  {id:'hat_beanie',cat:'Hat',name:'Beanie',price:35,rar:'common',hat:'beanie'},
-  {id:'hat_headband',cat:'Hat',name:'Flower Headband',price:40,rar:'rare',hat:'flower'},
-  {id:'hat_bucket',cat:'Hat',name:'Bucket Hat',price:35,rar:'common',hat:'bucket'},
-  /* Face */
-  {id:'acc_none',cat:'Face',name:'None',price:0,rar:'free',acc:null},
-  {id:'acc_sun',cat:'Face',name:'Sunglasses 😎',price:40,rar:'rare',acc:'sun'},
-  {id:'acc_aviator',cat:'Face',name:'Aviators',price:55,rar:'epic',acc:'aviator'},
-  {id:'acc_glasses',cat:'Face',name:'Round Glasses',price:25,rar:'common',acc:'glasses'},
-  {id:'acc_star',cat:'Face',name:'Star Face Paint ⭐',price:55,rar:'rare',acc:'star'},
-  {id:'acc_hearts',cat:'Face',name:'Heart Cheeks 💕',price:45,rar:'rare',acc:'hearts'},
-  {id:'acc_moustache',cat:'Face',name:'Silly Moustache',price:30,rar:'common',acc:'tache'},
-  {id:'acc_freckles',cat:'Face',name:'Freckles',price:10,rar:'common',acc:'freckles'},
-  /* Extras */
-  {id:'x_none',cat:'Extras',name:'None',price:0,rar:'free',extra:null},
-  {id:'x_backpack',cat:'Extras',name:'Backpack',price:40,rar:'common',extra:'backpack'},
-  {id:'x_necklace',cat:'Extras',name:'Gold Necklace',price:60,rar:'rare',extra:'necklace'},
-  {id:'x_scarf',cat:'Extras',name:'Red Scarf',price:35,rar:'common',extra:'scarf'},
-  {id:'x_camera',cat:'Extras',name:'Camera',price:50,rar:'rare',extra:'camera'},
-  {id:'x_guitar',cat:'Extras',name:'Guitar 🎸',price:120,rar:'legendary',extra:'guitar'},
-  {id:'x_cape',cat:'Extras',name:'Hero Cape',price:90,rar:'epic',extra:'cape'},
-  /* Pets */
-  {id:'pet_none',cat:'Pet',name:'No Pet',price:0,rar:'free',pet:null},
-  {id:'pet_burro',cat:'Pet',name:'Pet Burro 🫏',price:90,rar:'epic',pet:'🫏'},
-  {id:'pet_eagle',cat:'Pet',name:'Pet Eagle 🦅',price:90,rar:'epic',pet:'🦅'},
-  {id:'pet_lizard',cat:'Pet',name:'Pet Lizard 🦎',price:70,rar:'rare',pet:'🦎'},
-  {id:'pet_dog',cat:'Pet',name:'Puppy 🐶',price:80,rar:'rare',pet:'🐶'},
-  {id:'pet_cat',cat:'Pet',name:'Kitten 🐱',price:80,rar:'rare',pet:'🐱'},
-  {id:'pet_snake',cat:'Pet',name:'Rattlesnake 🐍',price:75,rar:'rare',pet:'🐍'},
-  {id:'pet_ufo',cat:'Pet',name:'UFO Buddy 🛸',price:130,rar:'legendary',pet:'🛸'},
-  /* AURAS — glow effects around your character (2D and 3D) */
-  {id:'aura_none',cat:'Aura',name:'None',price:0,rar:'free',aura:null},
-  {id:'aura_gold',cat:'Aura',name:'Golden Glow',price:80,rar:'rare',aura:'gold'},
-  {id:'aura_fire',cat:'Aura',name:'Fire Ring 🔥',price:120,rar:'epic',aura:'fire'},
-  {id:'aura_ice',cat:'Aura',name:'Ice Mist ❄️',price:120,rar:'epic',aura:'ice'},
-  {id:'aura_stars',cat:'Aura',name:'Star Sparkle ✨',price:100,rar:'epic',aura:'stars'},
-  {id:'aura_rainbow',cat:'Aura',name:'Rainbow Aura 🌈',price:180,rar:'legendary',aura:'rainbow'},
-  /* SCENES — locker backgrounds */
-  {id:'scene_locker',cat:'Scene',name:'Locker Room',price:0,rar:'free',scene:'locker'},
-  {id:'scene_route',cat:'Scene',name:'Route 66 Sunset',price:50,rar:'rare',scene:'route'},
-  {id:'scene_canyon',cat:'Scene',name:'Grand Canyon',price:60,rar:'rare',scene:'canyon'},
-  {id:'scene_beach',cat:'Scene',name:'Cali Beach 🌴',price:70,rar:'rare',scene:'beach'},
-  {id:'scene_vegas',cat:'Scene',name:'Vegas Neon 🎰',price:90,rar:'epic',scene:'vegas'},
-  {id:'scene_space',cat:'Scene',name:'Outer Space 🌌',price:110,rar:'epic',scene:'space'},
-  /* NAMEPLATES */
-  {id:'name_plain',cat:'Nameplate',name:'Classic',price:0,rar:'free',plate:'plain'},
-  {id:'name_gold',cat:'Nameplate',name:'Gold Bar',price:60,rar:'rare',plate:'gold'},
-  {id:'name_neon',cat:'Nameplate',name:'Neon Sign',price:90,rar:'epic',plate:'neon'},
-  {id:'name_royal',cat:'Nameplate',name:'Royal Banner 👑',price:150,rar:'legendary',plate:'royal'}
-];
-const SHOP_CATS=['Body','Hair','Tops','Bottoms','Shoes','Hat','Face','Extras','Pet','Aura','Scene','Nameplate'];
+/* ============================================================
+   WARDROBE 3.0 — generated: 180+ items, Fortnite-style shaded avatar
+   ============================================================ */
+const COLORS={red:'#d94f3d',orange:'#e8651f',gold:'#f0a830',green:'#5f8a4a',teal:'#3aa79a',blue:'#3a6fd5',navy:'#2c3e6b',purple:'#8a4d9e',pink:'#e86fae',black:'#26262e',white:'#f2efe8',brown:'#8a5a33'};
+const HAIR_COLORS={brown:'#5a3a1a',black:'#1c1c22',blonde:'#e6c86a',ginger:'#c0431a',red:'#a8331a',pink:'#e86fae',blue:'#3a6fd5',purple:'#8a4d9e',silver:'#c9c9d4'};
+function rarFor(p){return p===0?'free':p<40?'common':p<80?'rare':p<140?'epic':'legendary';}
+const SHOP_ITEMS=[];
+function addItem(o){o.rar=rarFor(o.price);SHOP_ITEMS.push(o);}
+/* Body — 6 tones, free */
+[['light','#f1c9a5'],['fair','#eab98a'],['tan','#e0ac69'],['olive','#c68e5a'],['brown','#a56b46'],['deep','#7a4a2b']].forEach(([n,v])=>addItem({id:'skin_'+n,cat:'Body',name:n[0].toUpperCase()+n.slice(1),price:0,skin:v}));
+/* Hair — 8 styles × 9 colors = 72 */
+{const styles=[['short','Short',0],['buzz','Buzz Cut',10],['wavy','Wavy',20],['long','Long',25],['pony','Ponytail',35],['bun','Bun',35],['curly','Curls',55],['spike','Spikes',85]];
+Object.entries(HAIR_COLORS).forEach(([cn,cv])=>styles.forEach(([sid,sn,base])=>addItem({id:'hair_'+sid+'_'+cn,cat:'Hair',name:cn[0].toUpperCase()+cn.slice(1)+' '+sn,price:(cn==='brown'&&sid==='short')?0:base+(['silver','pink','blue','purple'].includes(cn)?30:0),hair:cv,hairstyle:sid})));}
+/* Tops — 5 styles × 12 colors = 60 */
+{const styles=[['tee','Tee',10],['vest','Vest',20],['hoodie','Hoodie',45],['jacket','Jacket',70],['dress','Dress',50]];
+Object.entries(COLORS).forEach(([cn,cv])=>styles.forEach(([sid,sn,base])=>addItem({id:'top_'+sid+'_'+cn,cat:'Tops',name:cn[0].toUpperCase()+cn.slice(1)+' '+sn,price:(cn==='red'&&sid==='tee')?0:base+(cn==='gold'?60:0),top:sid,color:cv,dress:sid==='dress'})));}
+addItem({id:'top_gold_suit',cat:'Tops',name:'Golden Suit ✨',price:180,top:'jacket',color:'#f0a830',glow:true});
+/* Bottoms — 4 styles × 8 colors */
+{const styles=[['jeans','Jeans',10],['shorts','Shorts',15],['skirt','Skirt',20],['joggers','Joggers',25]];
+['blue','navy','black','red','green','purple','pink','gold'].forEach(cn=>styles.forEach(([sid,sn,base])=>addItem({id:'btm_'+sid+'_'+cn,cat:'Bottoms',name:cn[0].toUpperCase()+cn.slice(1)+' '+sn,price:(cn==='blue'&&sid==='jeans')?0:base+(cn==='gold'?50:0),btm:sid,color:COLORS[cn]})));}
+/* Shoes — 3 styles × 8 colors */
+{const styles=[['sneaker','Sneakers',10],['boot','Boots',25],['hitop','Hi-Tops',40]];
+['white','black','red','blue','pink','green','purple','gold'].forEach(cn=>styles.forEach(([sid,sn,base])=>addItem({id:'shoe_'+sid+'_'+cn,cat:'Shoes',name:cn[0].toUpperCase()+cn.slice(1)+' '+sn,price:(cn==='white'&&sid==='sneaker')?0:base+(cn==='gold'?40:0),shoe:sid,color:COLORS[cn]})));}
+/* Hats */
+[['none','No Hat',0,null],['cap','Baseball Cap',30,'cap'],['beanie','Beanie',35,'beanie'],['bow','Pink Bow',35,'bow'],['cowboy','Cowboy Hat',45,'cowboy'],['party','Party Hat',45,'party'],['flower','Flower Crown 🌸',60,'flower'],['headphones','Headphones',75,'phones'],['wizard','Wizard Hat 🧙',120,'wizard'],['crown','Golden Crown 👑',200,'crown']].forEach(([id,n,p,k])=>addItem({id:'hat_'+id,cat:'Hat',name:n,price:p,hat:k}));
+/* Face */
+[['none','None',0,null],['glasses','Round Glasses',25,'glasses'],['tache','Silly Moustache',30,'tache'],['freckles','Freckles',20,'freckles'],['sun','Sunglasses 😎',45,'sun'],['star','Star Face Paint ⭐',55,'star'],['heart','Heart Face Paint 💖',55,'heart'],['warpaint','War Paint',65,'warpaint']].forEach(([id,n,p,k])=>addItem({id:'acc_'+id,cat:'Face',name:n,price:p,acc:k}));
+/* Pets */
+[['none','No Pet',0,null],['dog','Road Dog 🐕',60,'🐕'],['cat','Cool Cat 🐈',60,'🐈'],['lizard','Lizard 🦎',70,'🦎'],['snake','Rattlesnake 🐍',75,'🐍'],['scorpion','Scorpion 🦂',75,'🦂'],['burro','Burro 🫏',90,'🫏'],['eagle','Eagle 🦅',90,'🦅'],['bear','Mini Buck 🐻',110,'🐻'],['ufo','UFO Buddy 🛸',130,'🛸'],['unicorn','Unicorn 🦄',140,'🦄'],['dragon','Dragon 🐉',160,'🐉']].forEach(([id,n,p,e])=>addItem({id:'pet_'+id,cat:'Pet',name:n,price:p,pet:e}));
+/* Auras / Scenes / Nameplates */
+[['none','None',0,null],['gold','Golden Glow',80,'gold'],['stars','Star Sparkle ✨',100,'stars'],['fire','Fire Ring 🔥',120,'fire'],['ice','Ice Mist ❄️',120,'ice'],['rainbow','Rainbow Aura 🌈',180,'rainbow']].forEach(([id,n,p,a])=>addItem({id:'aura_'+id,cat:'Aura',name:n,price:p,aura:a}));
+[['locker','Locker Room',0,'locker'],['route','Route 66 Sunset',50,'route'],['canyon','Grand Canyon',60,'canyon'],['beach','Cali Beach 🌴',70,'beach'],['vegas','Vegas Neon 🎰',90,'vegas'],['space','Outer Space 🌌',110,'space']].forEach(([id,n,p,s])=>addItem({id:'scene_'+id,cat:'Scene',name:n,price:p,scene:s}));
+[['plain','Classic',0,'plain'],['gold','Gold Bar',60,'gold'],['neon','Neon Sign',90,'neon'],['royal','Royal Banner 👑',150,'royal']].forEach(([id,n,p,k])=>addItem({id:'name_'+id,cat:'Nameplate',name:n,price:p,plate:k}));
+
+const SHOP_CATS=['Body','Hair','Tops','Bottoms','Shoes','Hat','Face','Pet','Aura','Scene','Nameplate'];
 const RAR_LABEL={free:'FREE',common:'Common',rare:'Rare',epic:'Epic',legendary:'Legendary'};
 function char(){
   progress.char=progress.char||{owned:{},equip:{}};
   const c=progress.char;c.owned=c.owned||{};c.equip=c.equip||{};
-  /* everyone owns the free basics */
   SHOP_ITEMS.forEach(i=>{if(i.price===0)c.owned[i.id]=1;});
-  const defaults={Body:'skin_light',Hair:'hair_short_brown',Tops:'shirt_red',Bottoms:'pants_jeans',Shoes:'shoes_white',Hat:'hat_none',Face:'acc_none',Extras:'x_none',Pet:'pet_none',Aura:'aura_none',Scene:'scene_locker',Nameplate:'name_plain'};
-  if(c.equip.Outfit&&!c.equip.Tops)c.equip.Tops=c.equip.Outfit; /* migrate old saves */
+  const defaults={Body:'skin_tan',Hair:'hair_short_brown',Tops:'top_tee_red',Bottoms:'btm_jeans_blue',Shoes:'shoe_sneaker_white',Hat:'hat_none',Face:'acc_none',Pet:'pet_none',Aura:'aura_none',Scene:'scene_locker',Nameplate:'name_plain'};
   SHOP_CATS.forEach(cat=>{if(!c.equip[cat]||!SHOP_ITEMS.find(i=>i.id===c.equip[cat]&&i.cat===cat))c.equip[cat]=defaults[cat];});
   return c;
 }
 function equipped(cat){const it=SHOP_ITEMS.find(i=>i.id===char().equip[cat]);return it||SHOP_ITEMS.find(i=>i.cat===cat);}
+
+/* ---------- Fortnite-style shaded human ---------- */
+function shade(hex,f){const n=parseInt(hex.slice(1),16);let r=(n>>16)&255,g=(n>>8)&255,b=n&255;
+  r=Math.max(0,Math.min(255,Math.round(r*f)));g=Math.max(0,Math.min(255,Math.round(g*f)));b=Math.max(0,Math.min(255,Math.round(b*f)));
+  return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);}
+function grad(id,c){return '<linearGradient id="'+id+'" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="'+shade(c,1.18)+'"/><stop offset=".55" stop-color="'+c+'"/><stop offset="1" stop-color="'+shade(c,0.66)+'"/></linearGradient>';}
 function avatarSVG(){
-  const body=equippedView('Body'),hair=equippedView('Hair'),out=equippedView('Outfit'),hat=equippedView('Hat'),face=equippedView('Face'),pet=equippedView('Pet');
-  const skin=body.skin||'#e0ac69';
-  const shirtFill=out.shirt==='rainbow'?'url(#rainbowg)':(out.shirt||'#e0654f');
-  let hairEl='';
-  const hc=hair.hair||'#5a3a1a';
-  if(hair.hairstyle==='short')hairEl='<path d="M58 44c0-20 64-20 64 0 0 6-4 8-4 8-2-14-54-14-56 0 0 0-4-2-4-8z" fill="'+hc+'"/>';
-  else if(hair.hairstyle==='long')hairEl='<path d="M54 46c0-24 72-24 72 0v40c0 6-10 6-10 0V56c-2-12-50-12-52 0v30c0 6-10 6-10 0z" fill="'+hc+'"/>';
-  else if(hair.hairstyle==='pony')hairEl='<path d="M58 44c0-20 64-20 64 0 0 6-4 8-4 8-2-14-54-14-56 0 0 0-4-2-4-8z" fill="'+hc+'"/><path d="M120 50c14 4 18 30 8 54-4-2-8-4-10-8 6-16 4-34-2-40z" fill="'+hc+'"/>';
-  else if(hair.hairstyle==='bun')hairEl='<circle cx="90" cy="34" r="12" fill="'+hc+'"/><path d="M58 46c0-20 64-20 64 0 0 6-4 8-4 8-2-14-54-14-56 0z" fill="'+hc+'"/>';
-  else if(hair.hairstyle==='spike')hairEl='<path d="M56 48l8-18 8 14 10-18 8 16 10-14 8 18 6-10v10c-2-10-62-10-64 0z" fill="'+hc+'"/>';
-  else if(hair.hairstyle==='curly')hairEl='<g fill="'+hc+'"><circle cx="60" cy="44" r="10"/><circle cx="74" cy="36" r="11"/><circle cx="90" cy="33" r="11"/><circle cx="106" cy="36" r="11"/><circle cx="120" cy="44" r="10"/></g>';
+  const body=equippedView('Body'),hair=equippedView('Hair'),top=equippedView('Tops'),btm=equippedView('Bottoms'),shoe=equippedView('Shoes'),hat=equippedView('Hat'),face=equippedView('Face'),pet=equippedView('Pet');
+  const S=body.skin||'#e0ac69',H=hair.hair||'#5a3a1a',T=top.color||'#d94f3d',B=btm.color||'#3a6fd5',SH=shoe.color||'#f2efe8';
+  const OUT='#1f1620',LW=2.6;
+  const defs='<defs>'+grad('gS',S)+grad('gT',T)+grad('gB',B)+grad('gSh',SH)+grad('gH',H)+
+    '<radialGradient id="gFace" cx="42%" cy="35%" r="75%"><stop offset="0" stop-color="'+shade(S,1.16)+'"/><stop offset=".7" stop-color="'+S+'"/><stop offset="1" stop-color="'+shade(S,0.8)+'"/></radialGradient></defs>';
+  const isDress=!!top.dress,isShorts=btm.btm==='shorts',isSkirt=btm.btm==='skirt';
+  /* legs + bottoms */
+  let legs='';
+  const legSkin='fill="url(#gS)" stroke="'+OUT+'" stroke-width="'+LW+'"';
+  if(isDress){
+    legs='<rect x="82" y="196" width="14" height="52" rx="7" '+legSkin+'/><rect x="104" y="196" width="14" height="52" rx="7" '+legSkin+'/>';
+  }else if(isShorts){
+    legs='<path d="M76 168h48l-4 34h-15l-5-20-5 20h-15z" fill="url(#gB)" stroke="'+OUT+'" stroke-width="'+LW+'"/>'+
+      '<rect x="82" y="200" width="14" height="48" rx="7" '+legSkin+'/><rect x="104" y="200" width="14" height="48" rx="7" '+legSkin+'/>';
+  }else if(isSkirt){
+    legs='<path d="M76 168h48l8 30H68z" fill="url(#gB)" stroke="'+OUT+'" stroke-width="'+LW+'"/>'+
+      '<rect x="82" y="196" width="14" height="52" rx="7" '+legSkin+'/><rect x="104" y="196" width="14" height="52" rx="7" '+legSkin+'/>';
+  }else{ /* jeans / joggers */
+    const cuff=btm.btm==='joggers'?'<rect x="80" y="240" width="18" height="8" rx="4" fill="'+shade(B,0.7)+'"/><rect x="102" y="240" width="18" height="8" rx="4" fill="'+shade(B,0.7)+'"/>':'';
+    legs='<path d="M76 168h48l-2 82h-18l-4-58-4 58H78z" fill="url(#gB)" stroke="'+OUT+'" stroke-width="'+LW+'"/>'+cuff;
+  }
+  /* shoes */
+  let shoes='';
+  const shoeH=shoe.shoe==='boot'?18:shoe.shoe==='hitop'?16:12;
+  shoes='<path d="M78 '+(258-shoeH)+'h20a6 6 0 016 6v6a4 4 0 01-4 4H76a4 4 0 01-4-4v-4a8 8 0 016-8z" fill="url(#gSh)" stroke="'+OUT+'" stroke-width="'+LW+'"/>'+
+        '<path d="M102 '+(258-shoeH)+'h20a6 6 0 016 6v6a4 4 0 01-4 4h-24a4 4 0 01-4-4v-4a8 8 0 016-8z" fill="url(#gSh)" stroke="'+OUT+'" stroke-width="'+LW+'"/>'+
+        '<rect x="72" y="268" width="30" height="5" rx="2.5" fill="'+shade(SH,0.55)+'"/><rect x="98" y="268" width="30" height="5" rx="2.5" fill="'+shade(SH,0.55)+'"/>';
+  /* torso + arms */
+  let torso='',arms='';
+  const sleeve=top.top==='vest'?0:(top.top==='tee'||isDress)?1:2; /* 0 none,1 short,2 long */
+  if(isDress){
+    torso='<path d="M74 108c0-10 52-10 52 0l12 88H62z" fill="url(#gT)" stroke="'+OUT+'" stroke-width="'+LW+'"/>'+
+      '<path d="M74 132h52" stroke="'+shade(T,0.75)+'" stroke-width="2"/>';
+  }else{
+    torso='<path d="M72 106c0-12 56-12 56 0v56a10 10 0 01-10 10H82a10 10 0 01-10-10z" fill="url(#gT)" stroke="'+OUT+'" stroke-width="'+LW+'"/>';
+    if(top.top==='hoodie')torso+='<path d="M84 150h32v14H84z" rx="6" fill="'+shade(T,0.8)+'"/><path d="M92 108v14M108 108v14" stroke="'+shade(T,0.6)+'" stroke-width="3"/>';
+    if(top.top==='jacket')torso+='<path d="M100 106v66" stroke="'+shade(T,0.55)+'" stroke-width="4"/><path d="M84 106l16 22 16-22" fill="none" stroke="'+shade(T,0.7)+'" stroke-width="3"/>';
+  }
+  const armSkin='url(#gS)',armCloth='url(#gT)';
+  const upperFill=sleeve>=1?armCloth:armSkin, lowerFill=sleeve===2?armCloth:armSkin;
+  arms='<g>'+
+    '<path d="M72 112c-10 2-16 14-16 30v18a7 7 0 0014 0v-16c0-10 2-18 6-22z" fill="'+upperFill+'" stroke="'+OUT+'" stroke-width="'+LW+'"/>'+
+    (sleeve===1?'<path d="M56 142v18a7 7 0 0014 0v-16z" fill="'+armSkin+'" stroke="'+OUT+'" stroke-width="'+LW+'"/>':'')+
+    '<circle cx="63" cy="166" r="7.5" fill="url(#gS)" stroke="'+OUT+'" stroke-width="'+LW+'"/>'+
+    '<path d="M128 112c10 2 16 14 16 30v18a7 7 0 01-14 0v-16c0-10-2-18-6-22z" fill="'+upperFill+'" stroke="'+OUT+'" stroke-width="'+LW+'"/>'+
+    (sleeve===1?'<path d="M144 142v18a7 7 0 01-14 0v-16z" fill="'+armSkin+'" stroke="'+OUT+'" stroke-width="'+LW+'"/>':'')+
+    '<circle cx="137" cy="166" r="7.5" fill="url(#gS)" stroke="'+OUT+'" stroke-width="'+LW+'"/></g>';
+  /* head */
+  const head='<path d="M92 96h16v14c0 6-16 6-16 0z" fill="url(#gS)" stroke="'+OUT+'" stroke-width="'+LW+'"/>'+
+    '<ellipse cx="100" cy="62" rx="30" ry="33" fill="url(#gFace)" stroke="'+OUT+'" stroke-width="'+LW+'"/>'+
+    '<ellipse cx="69" cy="64" rx="5" ry="7" fill="url(#gS)" stroke="'+OUT+'" stroke-width="2"/>'+
+    '<ellipse cx="131" cy="64" rx="5" ry="7" fill="url(#gS)" stroke="'+OUT+'" stroke-width="2"/>';
+  /* face detail */
+  let faceD='<g><ellipse cx="88" cy="62" rx="4.5" ry="6" fill="#1c1420"/><ellipse cx="112" cy="62" rx="4.5" ry="6" fill="#1c1420"/>'+
+    '<circle cx="89.6" cy="59.6" r="1.7" fill="#fff"/><circle cx="113.6" cy="59.6" r="1.7" fill="#fff"/>'+
+    '<path d="M81 51c3-3 9-3 13-1M106 50c4-2 10-2 13 1" stroke="'+shade(H,0.85)+'" stroke-width="3.4" fill="none" stroke-linecap="round"/>'+
+    '<path d="M98 66c1 4 1 6-2 8" stroke="'+shade(S,0.7)+'" stroke-width="2.4" fill="none" stroke-linecap="round"/>'+
+    '<path d="M90 82c5 5 15 5 20 0" stroke="#8a3a2e" stroke-width="3.4" fill="none" stroke-linecap="round"/>'+
+    '<ellipse cx="80" cy="74" rx="5" ry="3" fill="#e88" opacity=".28"/><ellipse cx="120" cy="74" rx="5" ry="3" fill="#e88" opacity=".28"/></g>';
+  if(face.acc==='sun')faceD+='<g fill="#241a22"><rect x="78" y="55" width="18" height="12" rx="5"/><rect x="104" y="55" width="18" height="12" rx="5"/><rect x="95" y="59" width="10" height="3"/></g>';
+  if(face.acc==='glasses')faceD+='<g fill="none" stroke="#241a22" stroke-width="2.6"><circle cx="88" cy="61" r="9"/><circle cx="112" cy="61" r="9"/><path d="M97 61h6"/></g>';
+  if(face.acc==='tache')faceD+='<path d="M88 78c4-4 8-4 12 0 4-4 8-4 12 0-4 4-8 3-12 0-4 3-8 4-12 0z" fill="'+shade(H,0.8)+'"/>';
+  if(face.acc==='freckles')faceD+='<g fill="'+shade(S,0.72)+'"><circle cx="82" cy="72" r="1.4"/><circle cx="87" cy="75" r="1.4"/><circle cx="113" cy="75" r="1.4"/><circle cx="118" cy="72" r="1.4"/></g>';
+  if(face.acc==='star')faceD+='<text x="72" y="52" font-size="13">⭐</text>';
+  if(face.acc==='heart')faceD+='<text x="115" y="52" font-size="13">💖</text>';
+  if(face.acc==='warpaint')faceD+='<path d="M76 70l10 3M124 70l-10 3" stroke="#c1440e" stroke-width="4" stroke-linecap="round"/>';
+  /* hair styles */
+  let hairEl='';const hg='url(#gH)';
+  const st=hair.hairstyle;
+  if(st==='short')hairEl='<path d="M70 56c-2-22 62-22 60 0-1 6-4 7-4 7 0-14-52-14-52 0 0 0-3-1-4-7z" fill="'+hg+'" stroke="'+OUT+'" stroke-width="2"/>';
+  else if(st==='buzz')hairEl='<path d="M72 52c0-16 56-16 56 0l-2 5c-4-10-48-10-52 0z" fill="'+hg+'" opacity=".9"/>';
+  else if(st==='wavy')hairEl='<path d="M70 58c-4-26 64-26 60 0-1 7-5 9-5 9 2-8-2-12-6-8-3-8-9-10-13-5-4-6-12-6-16 0-4-5-10-3-13 5-4-4-8 0-6 8 0 0-1-2-1-9z" fill="'+hg+'" stroke="'+OUT+'" stroke-width="2"/>';
+  else if(st==='long')hairEl='<path d="M68 58c-4-26 68-26 64 0l-2 46c0 8-12 8-12 0V70c-2-12-34-12-36 0v34c0 8-12 8-12 0z" fill="'+hg+'" stroke="'+OUT+'" stroke-width="2"/>';
+  else if(st==='pony')hairEl='<path d="M70 56c-2-22 62-22 60 0-1 6-4 7-4 7 0-14-52-14-52 0 0 0-3-1-4-7z" fill="'+hg+'" stroke="'+OUT+'" stroke-width="2"/><path d="M128 52c16 6 20 34 10 58-5-2-9-5-11-9 7-16 6-36-3-42z" fill="'+hg+'" stroke="'+OUT+'" stroke-width="2"/>';
+  else if(st==='bun')hairEl='<circle cx="100" cy="26" r="12" fill="'+hg+'" stroke="'+OUT+'" stroke-width="2"/><path d="M70 56c-2-22 62-22 60 0-1 6-4 7-4 7 0-14-52-14-52 0 0 0-3-1-4-7z" fill="'+hg+'" stroke="'+OUT+'" stroke-width="2"/>';
+  else if(st==='curly')hairEl='<g fill="'+hg+'" stroke="'+OUT+'" stroke-width="2"><circle cx="74" cy="48" r="11"/><circle cx="88" cy="38" r="12"/><circle cx="103" cy="35" r="12"/><circle cx="118" cy="40" r="11"/><circle cx="128" cy="52" r="9"/></g>';
+  else if(st==='spike')hairEl='<path d="M68 58l10-24 9 16 11-22 10 20 11-18 9 22 6-12 -2 18c-4-12-58-12-64 0z" fill="'+hg+'" stroke="'+OUT+'" stroke-width="2"/>';
+  /* hats */
   let hatEl='';
-  if(hat.hat==='cowboy')hatEl='<g><ellipse cx="90" cy="40" rx="52" ry="10" fill="#8a5a33"/><path d="M66 40c0-22 48-22 48 0z" fill="#a56b3a"/></g>';
-  else if(hat.hat==='cap')hatEl='<g><path d="M60 38c0-18 60-18 60 0z" fill="#e0654f"/><ellipse cx="128" cy="40" rx="20" ry="5" fill="#c1440e"/></g>';
-  else if(hat.hat==='crown')hatEl='<path d="M62 36l8-18 10 12 10-16 10 16 10-12 8 18z" fill="#f0a830" stroke="#c1440e" stroke-width="2"/><circle cx="90" cy="22" r="4" fill="#e0654f"/>';
-  else if(hat.hat==='bow')hatEl='<g fill="#e86fae"><path d="M80 34l-16-8v16z"/><path d="M100 34l16-8v16z"/><circle cx="90" cy="34" r="6"/></g>';
-  else if(hat.hat==='party')hatEl='<path d="M90 12l16 30H74z" fill="#8a4d9e"/><circle cx="90" cy="12" r="5" fill="#f0a830"/>';
-  else if(hat.hat==='beanie')hatEl='<path d="M60 42c0-24 60-24 60 0z" fill="#3aa79a"/><rect x="58" y="40" width="64" height="8" rx="4" fill="#2a7d72"/>';
-  let faceEl='';
-  if(face.acc==='sun')faceEl='<g fill="#241a22"><rect x="66" y="66" width="20" height="12" rx="4"/><rect x="94" y="66" width="20" height="12" rx="4"/><rect x="86" y="70" width="8" height="3"/></g>';
-  else if(face.acc==='glasses')faceEl='<g fill="none" stroke="#241a22" stroke-width="3"><circle cx="76" cy="72" r="10"/><circle cx="104" cy="72" r="10"/><path d="M86 72h8"/></g>';
-  else if(face.acc==='star')faceEl='<text x="72" y="60" font-size="16">⭐</text>';
-  else if(face.acc==='tache')faceEl='<path d="M78 88c4-4 8-4 12 0 4-4 8-4 12 0-4 4-8 2-12-1-4 3-8 5-12 1z" fill="#3a2417"/>';
-  const dress=out.dress?'<path d="M56 120l34-8 34 8-8 60H64z" fill="'+shirtFill+'"/>':'<rect x="60" y="112" width="60" height="60" rx="10" fill="'+shirtFill+'"/>';
-  const glow=out.glow?'<circle cx="90" cy="150" r="70" fill="#f0a830" opacity=".18"/>':'';
-  const petEl=pet.pet?'<text x="150" y="150" font-size="34">'+pet.pet+'</text>':'';
-  return '<svg viewBox="0 0 200 210" width="100%" height="100%"><defs><linearGradient id="rainbowg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e0654f"/><stop offset=".3" stop-color="#f0a830"/><stop offset=".6" stop-color="#5f8a4a"/><stop offset="1" stop-color="#8a4d9e"/></linearGradient></defs>'+
-    glow+petEl+
-    dress+
-    '<circle cx="90" cy="78" r="34" fill="'+skin+'"/>'+
-    '<circle cx="80" cy="76" r="4" fill="#241a22"/><circle cx="100" cy="76" r="4" fill="#241a22"/>'+
-    '<path d="M80 92c4 5 16 5 20 0" fill="none" stroke="#241a22" stroke-width="3" stroke-linecap="round"/>'+
-    hairEl+faceEl+hatEl+'</svg>';
+  if(hat.hat==='cowboy')hatEl='<ellipse cx="100" cy="40" rx="46" ry="9" fill="#8a5a33" stroke="'+OUT+'" stroke-width="2"/><path d="M78 40c0-22 44-22 44 0z" fill="#a56b3a" stroke="'+OUT+'" stroke-width="2"/>';
+  else if(hat.hat==='cap')hatEl='<path d="M72 38c0-18 56-18 56 0z" fill="#d94f3d" stroke="'+OUT+'" stroke-width="2"/><ellipse cx="136" cy="39" rx="18" ry="5" fill="#a83a2c" stroke="'+OUT+'" stroke-width="2"/>';
+  else if(hat.hat==='beanie')hatEl='<path d="M72 42c0-24 56-24 56 0z" fill="#3aa79a" stroke="'+OUT+'" stroke-width="2"/><rect x="70" y="39" width="60" height="9" rx="4.5" fill="#2a7d72" stroke="'+OUT+'" stroke-width="2"/>';
+  else if(hat.hat==='bow')hatEl='<g fill="#e86fae" stroke="'+OUT+'" stroke-width="2"><path d="M88 32l-18-9v18z"/><path d="M112 32l18-9v18z"/><circle cx="100" cy="32" r="7"/></g>';
+  else if(hat.hat==='party')hatEl='<path d="M100 4l18 34H82z" fill="#8a4d9e" stroke="'+OUT+'" stroke-width="2"/><circle cx="100" cy="5" r="5" fill="#f0a830"/>';
+  else if(hat.hat==='flower')hatEl='<g font-size="13"><text x="72" y="40">🌸</text><text x="92" y="33">🌼</text><text x="113" y="40">🌸</text></g>';
+  else if(hat.hat==='phones')hatEl='<path d="M70 60c-4-30 64-30 60 0" fill="none" stroke="#26262e" stroke-width="7"/><rect x="62" y="54" width="12" height="20" rx="6" fill="#26262e"/><rect x="126" y="54" width="12" height="20" rx="6" fill="#26262e"/>';
+  else if(hat.hat==='wizard')hatEl='<path d="M100 -2l22 42H78z" fill="#3b1a47" stroke="'+OUT+'" stroke-width="2"/><ellipse cx="100" cy="40" rx="30" ry="6" fill="#5b2a6b" stroke="'+OUT+'" stroke-width="2"/><text x="93" y="26" font-size="12">✨</text>';
+  else if(hat.hat==='crown')hatEl='<path d="M76 36l8-20 12 12 4-16 4 16 12-12 8 20z" fill="#f0a830" stroke="#c1440e" stroke-width="2.4"/><circle cx="100" cy="16" r="4" fill="#e0654f"/>';
+  const glow=top.glow?'<ellipse cx="100" cy="150" rx="85" ry="120" fill="#f0a830" opacity=".14"/>':'';
+  const petEl=pet.pet?'<text x="152" y="230" font-size="34">'+pet.pet+'</text>':'';
+  return '<svg viewBox="0 0 200 280" width="100%" height="100%">'+defs+glow+petEl+
+    legs+shoes+torso+arms+head+faceD+hairEl+hatEl+'</svg>';
 }
 let previewItem=null; /* item being tried on but not owned */
 /* 3D stage: idle spin + drag to rotate, Fortnite-locker style */
 let charRot=0,charDrag=null,charIdle=null;
 function wireCharStage(){
-  const box=document.getElementById('charAvatar');if(!box||box.dataset.wired)return;box.dataset.wired='1';
-  clearInterval(charIdle);
-  charIdle=setInterval(()=>{if(charDrag===null){charRot+=0.35;applyCharRot();}},50);
-  box.addEventListener('pointerdown',e=>{e.preventDefault();charDrag=e.clientX;try{box.setPointerCapture(e.pointerId);}catch(_){/**/}});
-  box.addEventListener('pointermove',e=>{if(charDrag===null)return;charRot+=(e.clientX-charDrag)*0.6;charDrag=e.clientX;applyCharRot();});
-  box.addEventListener('pointerup',()=>charDrag=null);
-  box.addEventListener('pointerleave',()=>charDrag=null);
-  box.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
-}
-function applyCharRot(){
-  const box=document.getElementById('charAvatar');if(!box)return;
-  const r=((charRot%360)+360)%360;
-  const flip=(r>90&&r<270)?-1:1; /* fake 3D: mirror past the side */
-  const squash=Math.abs(Math.cos(r*Math.PI/180));
-  box.style.transform='perspective(700px) rotateY('+(r>90&&r<270?180-r:r>=270?r-360:r)*0.35+'deg) scaleX('+(0.4+0.6*squash)*flip+')';
-}
-function equippedView(cat){
-  if(previewItem&&previewItem.cat===cat)return previewItem;
-  return equipped(cat);
-}
-function playerTitle(){
-  const t=totalEarned();
-  return t>=1000?'🌟 66 MASTER':t>=500?'🏜️ Desert Legend':t>=200?'🛣️ Route Runner':'🚗 Rookie Roadtripper';
-}
-/* ===== READY PLAYER ME — lifelike 3D avatar (free) ===== */
-document.addEventListener('click',e=>{if(e.target&&e.target.closest&&e.target.closest('#rpmBtn')){e.preventDefault();openRPM();}});
-function openRPM(){
-  if(document.querySelector('.rpm'))return;
-  const o=document.createElement('div');o.className='rpm';
-  o.innerHTML='<div class="rpm-card"><div class="rpm-head">🧍 Build your 3D self — pick face, hair, real clothes! When you\u2019re done it saves automatically.</div>'+
-    '<p class="rpm-loading">Loading the 3D builder… (needs internet)</p>'+
-    '<iframe class="rpm-frame" src="https://demo.readyplayer.me/avatar?frameApi&clearCache" allow="camera *; microphone *"></iframe>'+
-    '<div class="rpm-foot"><a class="rpm-alt" href="https://demo.readyplayer.me/avatar" target="_blank" rel="noopener">Builder not loading? Open it in a new tab ↗ (then paste your avatar link below)</a>'+
-    '<div class="rpm-paste"><input class="rpm-url" placeholder="Paste .glb avatar link here"><button type="button" class="btn btn-primary rpm-save">Save</button></div>'+
-    '<button type="button" class="btn btn-quiet rpm-close">✕ Close</button></div></div>';
-  document.body.appendChild(o);
-  o.querySelector('.rpm-frame').addEventListener('load',()=>{const l=o.querySelector('.rpm-loading');if(l)l.remove();});
-  o.querySelector('.rpm-save').addEventListener('click',()=>{
-    const u=(o.querySelector('.rpm-url').value||'').trim();
-    if(!/^https?:\/\/.+\.glb/.test(u)){o.querySelector('.rpm-url').placeholder='Link must end in .glb!';return;}
-    progress.rpmUrl=u;saveProgress();syncPlayer();o.remove();ensureModelViewer();renderCharacter();
-    bearCelebrate('WOW, is that really you?! 🐻🔥');sfx('jackpot');
-  });
-  o.querySelector('.rpm-close').addEventListener('click',()=>o.remove());
-}
-window.addEventListener('message',e=>{
-  let d=null;try{d=typeof e.data==='string'?JSON.parse(e.data):e.data;}catch(_){return;}
-  if(d&&d.eventName==='v1.frame.ready'){
-    const f=document.querySelector('.rpm-frame');
-    if(f)f.contentWindow.postMessage(JSON.stringify({target:'readyplayerme',type:'subscribe',eventName:'v1.**'}),'*');
-  }
-  if(d&&d.eventName==='v1.avatar.exported'&&d.data&&d.data.url){
-    progress.rpmUrl=d.data.url;saveProgress();syncPlayer();
-    document.querySelector('.rpm')?.remove();
-    ensureModelViewer();renderCharacter();
-    bearCelebrate('WOW, is that really you?! Looking sharp! 🐻🔥');sfx('jackpot');
-  }
-});
-let mvLoaded=false;
-function ensureModelViewer(){
-  if(mvLoaded||document.querySelector('script[data-mv]'))return;mvLoaded=true;
-  const s=document.createElement('script');s.type='module';s.dataset.mv='1';
-  s.src='https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js';
-  document.head.appendChild(s);
-}
-function renderCharacter(){
   const box=document.getElementById('charAvatar');
   const stage=document.querySelector('.char-stage');
   const aura=(equippedView('Aura')||{}).aura,scene=(equippedView('Scene')||{}).scene||'locker',plate=(equippedView('Nameplate')||{}).plate||'plain';
   if(stage){stage.className='char-stage scene-'+scene;}
-  if(box){
-    if(progress.rpmUrl){
-      ensureModelViewer();
-      box.innerHTML='<model-viewer src="'+progress.rpmUrl+'" camera-controls auto-rotate auto-rotate-delay="800" rotation-per-second="25deg" shadow-intensity="1" camera-orbit="0deg 85deg 2.4m" style="width:100%;height:340px;background:transparent;"></model-viewer>';
-    } else {
-      box.innerHTML=avatarSVG();
-    }
-    box.classList.toggle('previewing',!!previewItem);
-    box.dataset.aura=aura||'';
-  }
-  const rpmBtn=document.getElementById('rpmBtn');
-  if(rpmBtn)rpmBtn.textContent=progress.rpmUrl?'✏️ Edit my 3D avatar':'🧍 Create my REAL 3D avatar!';
+  if(box){box.innerHTML=avatarSVG();box.classList.toggle('previewing',!!previewItem);box.dataset.aura=aura||'';}
   const nm2=document.getElementById('charName');if(nm2)nm2.dataset.plate=plate;
   const cc=document.getElementById('charChips');if(cc)cc.textContent=session&&session.test?'∞':(progress.chips||0);
   const nm=document.getElementById('charName');if(nm)nm.textContent=(session?session.username:'')+' · '+playerTitle();
@@ -1405,12 +1314,18 @@ function buyOrWear(id){
   c.equip[it.cat]=id;saveProgress();updateChips();renderCharacter();renderShop();syncPlayer();sfx('click');
 }
 /* ===== SEASON PASS (28) — driven by TOTAL chips ever earned ===== */
-const SEASON_REWARDS=[
-  [50,'🪙 +10 bonus chips','chips',10],[100,'🎩 Free Beanie','item','hat_beanie'],[150,'🪙 +15 chips','chips',15],
-  [200,'😎 Free Sunglasses','item','acc_sun'],[250,'🪙 +20 chips','chips',20],[300,'🤠 Free Cowboy Hat','item','hat_cowboy'],
-  [400,'🪙 +25 chips','chips',25],[500,'🦎 Free Pet Lizard','item','pet_lizard'],[650,'🪙 +40 chips','chips',40],
-  [800,'🌈 Rainbow Tee','item','shirt_rainbow'],[1000,'👑 Golden Crown','item','hat_crown'],[1500,'✨ Golden Suit','item','shirt_gold']
-];
+/* Season pass: a tier EVERY 10 chips earned — 40 tiers */
+const SEASON_ITEM_DROPS=['hat_beanie','acc_glasses','shoe_hitop_red','hair_wavy_blonde','hat_cap','acc_sun','btm_joggers_black','pet_lizard','top_hoodie_purple','scene_route','hat_cowboy','aura_gold','pet_burro','name_gold','top_jacket_navy','scene_vegas','aura_stars','hat_headphones','pet_bear','name_neon','aura_fire','scene_space','hat_wizard','pet_ufo','top_gold_suit','aura_rainbow','name_royal','hat_crown'];
+const SEASON_REWARDS=(function(){
+  const out=[];let drop=0;
+  for(let t=1;t<=40;t++){
+    const req=t*10;
+    if(t%3===0&&drop<SEASON_ITEM_DROPS.length){const id=SEASON_ITEM_DROPS[drop++];const it=SHOP_ITEMS.find(i=>i.id===id);
+      out.push([req,(it?it.name:'Mystery item')+' 🎁','item',id]);}
+    else out.push([req,'🪙 +'+(5+Math.floor(t/8)*5)+' chips','chips',5+Math.floor(t/8)*5]);
+  }
+  return out;
+})();
 function totalEarned(){return progress.chipsEarned||0;}
 function grantEarn(n){progress.chipsEarned=(progress.chipsEarned||0)+n;checkSeason();}
 function checkSeason(){
