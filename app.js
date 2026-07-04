@@ -7,8 +7,7 @@ const ACCOUNTS={
   admin:{role:'admin',hash:'7f3d56bb44da1a1f5239ac9db712488db90f135d999290ed9104eba8691096e2'}
 };
 /* Paste your Google Apps Script /exec URL into sheetEndpoint to sync across devices. */
-const CONFIG={sheetEndpoint:'https://script.google.com/macros/s/AKfycbx_qOmtVWPm7BuClVf1Yj-w4pV7OyWgEzxntc89hgxNeQ9FB-acd6j5NcC0rO7wgkGy/exec
-',sheetUrl:'',youtubeKey:'AIzaSyC97QvLqWtLZ339RY01Zfv2ghEVJWr14TE'};
+const CONFIG={sheetEndpoint:'',sheetUrl:'',youtubeKey:''};
 /* Departure: 12 Aug 2026, 11:40 UK time (BST = UTC+1) */
 const DEPARTURE=Date.UTC(2026,7,12,10,40,0);
 const SCORE_PER_STOP=100;
