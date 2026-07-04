@@ -631,3 +631,37 @@ tbody tr:nth-child(1) td{font-weight:900;color:var(--orange-deep)}
 .music-small{font-size:.72rem !important}
 .music-small a{color:var(--orange-deep);font-weight:900}
 .music-frame{width:100%;aspect-ratio:16/9;border:3px solid var(--asphalt);border-radius:var(--radius-sm);background:#000;display:block}
+
+
+/* ===== RPM overlay ===== */
+.rpm{position:fixed;inset:0;z-index:210;background:rgba(36,26,34,.9);display:grid;place-items:center;padding:10px}
+.rpm-card{width:min(920px,100%);height:min(680px,94vh);display:flex;flex-direction:column;gap:8px;background:var(--panel);border:5px solid var(--gold);border-radius:20px;padding:12px}
+.rpm-head{font-weight:900;text-align:center;font-size:.9rem}
+.rpm-frame{flex:1;width:100%;border:3px solid var(--asphalt);border-radius:14px;background:#111}
+.rpm-btn{width:100%;margin-top:10px}
+
+/* ===== auras ===== */
+.char-avatar{position:relative}
+.char-avatar[data-aura=gold]{filter:drop-shadow(0 0 26px rgba(255,194,75,.95))}
+.char-avatar[data-aura=fire]{filter:drop-shadow(0 0 20px rgba(232,101,31,.95)) drop-shadow(0 8px 26px rgba(193,68,14,.8));animation:auraflicker .35s ease-in-out infinite alternate}
+@keyframes auraflicker{from{filter:drop-shadow(0 0 14px rgba(232,101,31,.8))}to{filter:drop-shadow(0 0 30px rgba(255,140,40,1))}}
+.char-avatar[data-aura=ice]{filter:drop-shadow(0 0 24px rgba(140,210,255,.95))}
+.char-avatar[data-aura=stars]{filter:drop-shadow(0 0 18px rgba(255,255,220,.9))}
+.char-avatar[data-aura=stars]:after{content:"✨";position:absolute;top:6%;right:12%;font-size:1.4rem;animation:bounce 1.8s infinite}
+.char-avatar[data-aura=rainbow]{animation:aurarainbow 3s linear infinite}
+@keyframes aurarainbow{0%{filter:drop-shadow(0 0 22px #e0654f)}25%{filter:drop-shadow(0 0 22px #f0a830)}50%{filter:drop-shadow(0 0 22px #5f8a4a)}75%{filter:drop-shadow(0 0 22px #3a7bd5)}100%{filter:drop-shadow(0 0 22px #e0654f)}}
+
+/* ===== scenes ===== */
+.char-stage.scene-locker{background:radial-gradient(ellipse at 50% 85%,rgba(240,168,48,.5),transparent 60%),linear-gradient(180deg,#3b1a47,#241a22)}
+.char-stage.scene-route{background:linear-gradient(180deg,#ffd98a,#e8651f 60%,#241a22 92%)}
+.char-stage.scene-canyon{background:linear-gradient(180deg,#f6b85f,#c1440e 55%,#7a3520 90%)}
+.char-stage.scene-beach{background:linear-gradient(180deg,#8fd6f5,#ffe9bd 60%,#f0d29a 90%)}
+.char-stage.scene-vegas{background:radial-gradient(circle at 30% 20%,rgba(232,101,31,.5),transparent 40%),radial-gradient(circle at 70% 30%,rgba(138,77,158,.6),transparent 45%),linear-gradient(180deg,#12081a,#241a22)}
+.char-stage.scene-space{background:radial-gradient(circle at 20% 30%,#fff 1px,transparent 2px),radial-gradient(circle at 70% 20%,#fff 1px,transparent 2px),radial-gradient(circle at 45% 70%,#fff 1.5px,transparent 2.5px),radial-gradient(circle at 85% 60%,#fff 1px,transparent 2px),linear-gradient(180deg,#0a0a1e,#1a0a2e)}
+
+/* ===== nameplates ===== */
+.char-name[data-plate=gold]{background:linear-gradient(180deg,var(--gold),var(--mustard));color:var(--asphalt);padding:4px 16px;border-radius:8px;border:2px solid var(--asphalt)}
+.char-name[data-plate=neon]{color:#7df9ff;text-shadow:0 0 8px #7df9ff,0 0 22px #7df9ff;border:2px solid #7df9ff;border-radius:8px;padding:4px 16px}
+.char-name[data-plate=royal]{background:linear-gradient(180deg,#8a4d9e,#5b2a6b);color:var(--gold);padding:4px 18px;border-radius:999px;border:2px solid var(--gold)}
+.char-name[data-plate=royal]:before{content:"👑 "}
+model-viewer{--poster-color:transparent}
