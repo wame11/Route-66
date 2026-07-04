@@ -665,3 +665,9 @@ tbody tr:nth-child(1) td{font-weight:900;color:var(--orange-deep)}
 .char-name[data-plate=royal]{background:linear-gradient(180deg,#8a4d9e,#5b2a6b);color:var(--gold);padding:4px 18px;border-radius:999px;border:2px solid var(--gold)}
 .char-name[data-plate=royal]:before{content:"👑 "}
 model-viewer{--poster-color:transparent}
+.rpm-loading{text-align:center;font-weight:900;color:var(--purple);margin:0}
+.rpm-foot{display:grid;gap:8px}
+.rpm-alt{font-size:.78rem;font-weight:800;color:var(--orange-deep);text-align:center;text-decoration:none}
+.rpm-paste{display:flex;gap:8px}
+.rpm-url{flex:1;border:2px solid var(--line);border-radius:10px;padding:10px;font-size:.8rem}
+.rpm-paste .btn{min-height:42px;padding:8px 14px;font-size:.75rem}
