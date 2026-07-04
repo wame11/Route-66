@@ -1301,13 +1301,24 @@ function playerTitle(){
   return t>=1000?'🌟 66 MASTER':t>=500?'🏜️ Desert Legend':t>=200?'🛣️ Route Runner':'🚗 Rookie Roadtripper';
 }
 /* ===== READY PLAYER ME — lifelike 3D avatar (free) ===== */
+document.addEventListener('click',e=>{if(e.target&&e.target.closest&&e.target.closest('#rpmBtn')){e.preventDefault();openRPM();}});
 function openRPM(){
   if(document.querySelector('.rpm'))return;
   const o=document.createElement('div');o.className='rpm';
   o.innerHTML='<div class="rpm-card"><div class="rpm-head">🧍 Build your 3D self — pick face, hair, real clothes! When you\u2019re done it saves automatically.</div>'+
+    '<p class="rpm-loading">Loading the 3D builder… (needs internet)</p>'+
     '<iframe class="rpm-frame" src="https://demo.readyplayer.me/avatar?frameApi&clearCache" allow="camera *; microphone *"></iframe>'+
-    '<button type="button" class="btn btn-quiet rpm-close">✕ Close</button></div>';
+    '<div class="rpm-foot"><a class="rpm-alt" href="https://demo.readyplayer.me/avatar" target="_blank" rel="noopener">Builder not loading? Open it in a new tab ↗ (then paste your avatar link below)</a>'+
+    '<div class="rpm-paste"><input class="rpm-url" placeholder="Paste .glb avatar link here"><button type="button" class="btn btn-primary rpm-save">Save</button></div>'+
+    '<button type="button" class="btn btn-quiet rpm-close">✕ Close</button></div></div>';
   document.body.appendChild(o);
+  o.querySelector('.rpm-frame').addEventListener('load',()=>{const l=o.querySelector('.rpm-loading');if(l)l.remove();});
+  o.querySelector('.rpm-save').addEventListener('click',()=>{
+    const u=(o.querySelector('.rpm-url').value||'').trim();
+    if(!/^https?:\/\/.+\.glb/.test(u)){o.querySelector('.rpm-url').placeholder='Link must end in .glb!';return;}
+    progress.rpmUrl=u;saveProgress();syncPlayer();o.remove();ensureModelViewer();renderCharacter();
+    bearCelebrate('WOW, is that really you?! 🐻🔥');sfx('jackpot');
+  });
   o.querySelector('.rpm-close').addEventListener('click',()=>o.remove());
 }
 window.addEventListener('message',e=>{
@@ -1551,7 +1562,7 @@ function showView(id){
   document.querySelectorAll('.vtab').forEach(b=>b.classList.toggle('active',b.dataset.view===id));
   if(id==='gamesView')renderHub();
   if(id==='postView')renderPostcards();
-  if(id==='charView'){renderCharacter();renderShop();renderSeason();wireCharStage();document.getElementById('rpmBtn')?.addEventListener('click',openRPM,{once:false});}
+  if(id==='charView'){renderCharacter();renderShop();renderSeason();wireCharStage();}
   if(id==='homeView')renderHome();
   window.scrollTo(0,0);
 }
