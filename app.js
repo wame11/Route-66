@@ -1,4 +1,4 @@
-/* ===== Route 66 Family Challenge —  V5 ARCADE EDITION ===== */
+/* ===== Route 66 Family Challenge — ARCADE EDITION ===== */
 const ACCOUNTS={
   Jacob:{role:'player',hash:'03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4'},
   Lily:{role:'player',hash:'fe2592b42a727e977f055947385b709cc82b16b9a87f88c6abf3900d65d0cdc3'},
@@ -7,7 +7,7 @@ const ACCOUNTS={
   admin:{role:'admin',hash:'7f3d56bb44da1a1f5239ac9db712488db90f135d999290ed9104eba8691096e2'}
 };
 /* Paste your Google Apps Script /exec URL into sheetEndpoint to sync across devices. */
-const CONFIG={sheetEndpoint:'',sheetUrl:'',youtubeKey:''};
+const CONFIG={sheetEndpoint:'https://script.google.com/macros/s/AKfycbx_qOmtVWPm7BuClVf1Yj-w4pV7OyWgEzxntc89hgxNeQ9FB-acd6j5NcC0rO7wgkGy/exec',sheetUrl:'',youtubeKey:'AIzaSyC97QvLqWtLZ339RY01Zfv2ghEVJWr14TE'};
 /* Departure: 12 Aug 2026, 11:40 UK time (BST = UTC+1) */
 const DEPARTURE=Date.UTC(2026,7,12,10,40,0);
 const SCORE_PER_STOP=100;
@@ -1259,9 +1259,33 @@ function avatarSVG(){
     legs+shoes+torso+arms+head+faceD+hairEl+hatEl+'</svg>';
 }
 let previewItem=null; /* item being tried on but not owned */
-/* 3D stage: idle spin + drag to rotate, Fortnite-locker style */
+function equippedView(cat){
+  if(previewItem&&previewItem.cat===cat)return previewItem;
+  return equipped(cat);
+}
+function playerTitle(){
+  const t=totalEarned();
+  return t>=1000?'🌟 66 MASTER':t>=500?'🏜️ Desert Legend':t>=200?'🛣️ Route Runner':'🚗 Rookie Roadtripper';
+}
+/* 3D locker stage: idle spin + drag to rotate */
 let charRot=0,charDrag=null,charIdle=null;
+function applyCharRot(){
+  const box=document.getElementById('charAvatar');if(!box)return;
+  const r=((charRot%360)+360)%360;
+  const deg=(r>180?r-360:r)*0.4;
+  box.style.transform='perspective(760px) rotateY('+deg+'deg)';
+}
 function wireCharStage(){
+  const box=document.getElementById('charAvatar');if(!box||box.dataset.wired)return;box.dataset.wired='1';
+  clearInterval(charIdle);
+  charIdle=setInterval(()=>{if(charDrag===null){charRot+=0.4;applyCharRot();}},50);
+  box.addEventListener('pointerdown',e=>{e.preventDefault();charDrag=e.clientX;try{box.setPointerCapture(e.pointerId);}catch(_){/**/}});
+  box.addEventListener('pointermove',e=>{if(charDrag===null)return;charRot+=(e.clientX-charDrag)*0.7;charDrag=e.clientX;applyCharRot();});
+  box.addEventListener('pointerup',()=>charDrag=null);
+  box.addEventListener('pointerleave',()=>charDrag=null);
+  box.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
+}
+function renderCharacter(){
   const box=document.getElementById('charAvatar');
   const stage=document.querySelector('.char-stage');
   const aura=(equippedView('Aura')||{}).aura,scene=(equippedView('Scene')||{}).scene||'locker',plate=(equippedView('Nameplate')||{}).plate||'plain';
