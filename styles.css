@@ -683,3 +683,19 @@ model-viewer{--poster-color:transparent}
 .grant-minus{border-color:var(--rust);background:#fdeee9;color:var(--rust)}
 .grant-status{font-weight:800;color:var(--purple);min-height:1.3em;margin:8px 0 0;font-size:.84rem}
 .grant-standings{font-size:.78rem;color:var(--muted);margin-top:6px}
+
+/* ===== FIX: Buck no longer covers the Complete Mission button ===== */
+.app{padding-bottom:130px}
+.complete-row{margin-bottom:16px}
+.complete-row .submit{position:relative;z-index:70}
+@media(max-width:520px){.app{padding-bottom:150px}}
+
+/* ===== live mission checklist ===== */
+.mission-check{margin:0 0 12px;padding:12px 14px;border:3px solid var(--asphalt);border-radius:var(--radius-sm);background:#fff7ea;box-shadow:0 4px 0 var(--asphalt)}
+.mission-check.mc-ready{background:rgba(95,138,74,.16);border-color:var(--cactus);box-shadow:0 4px 0 var(--cactus)}
+.mc-title{font-weight:900;font-size:.92rem;margin-bottom:8px}
+.mc-list{display:flex;flex-wrap:wrap;gap:6px}
+.mc-item{font-size:.76rem;font-weight:800;background:#fff;border:2px solid var(--line);border-radius:999px;padding:4px 10px;color:var(--muted)}
+.mc-item.ok{background:rgba(95,138,74,.18);border-color:var(--cactus);color:#3d6230}
+.flash-need{animation:needflash 1.5s ease}
+@keyframes needflash{0%,100%{box-shadow:0 4px 0 var(--asphalt)}25%,75%{box-shadow:0 4px 0 var(--asphalt),0 0 0 6px rgba(232,101,31,.5)}}
