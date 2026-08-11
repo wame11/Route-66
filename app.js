@@ -192,6 +192,7 @@ function renderLevel(index){
       taskSection(3,'Scavenger hunt','photo each one!','hunt-sec','<p class="hint">These are YOUR 5 targets — everyone gets different ones. Snap a photo of each!</p><div class="hunt"></div>')+
       taskSection(4,'<span class="game-name"></span>','arcade','arcade-sec','<p class="hint game-prompt"></p><div class="arcade"></div>')+
       taskSection(5,'Boss quiz','beat it!','quiz-sec','<p class="hint">Your questions — no copying, everyone gets different ones!</p><div class="quiz"></div><button class="btn btn-secondary check" type="button">Check answers</button><p class="quizResult"></p>')+
+      '<div class="mission-check"></div>'+
       '<div class="complete-row"><button class="btn btn-primary submit" type="button">🚩 Complete mission</button><span class="completeStatus"></span></div>'+
     '</div>';
   root.querySelector('h1').textContent=stop.title;
@@ -217,6 +218,28 @@ function refreshTaskTags(root,stop){
   root.querySelector('.hunt-sec')?.classList.toggle('task-complete',myHunt(stop).every((_,i)=>hp[i]?.dataUrl));
   root.querySelector('.arcade-sec')?.classList.toggle('task-complete',Boolean(progress.game[stop.id]?.complete));
   root.querySelector('.quiz-sec')?.classList.toggle('task-complete',Boolean(progress.quiz[stop.id]?.correct));
+  renderMissionCheck(root,stop);
+}
+/* live checklist so you can always see what's still missing */
+function missionSteps(stop){
+  const hp=progress.huntPhotos[stop.id]||{};
+  const hunt=myHunt(stop);
+  const doneHunt=hunt.filter((_,i)=>hp[i]?.dataUrl).length;
+  return [
+    {ok:Boolean(progress.photos[stop.id]?.dataUrl),label:'Arrival photo',sel:'.proof'},
+    {ok:doneHunt===hunt.length,label:'Hunt photos ('+doneHunt+'/'+hunt.length+')',sel:'.hunt-sec'},
+    {ok:Boolean(progress.game[stop.id]?.complete),label:'Win 1 arcade game',sel:'.arcade-sec'},
+    {ok:Boolean(progress.quiz[stop.id]?.correct),label:'Beat the boss quiz',sel:'.quiz-sec'}
+  ];
+}
+function renderMissionCheck(root,stop){
+  const box=root.querySelector('.mission-check');if(!box)return;
+  if(session.test){box.innerHTML='<div class="mc-title">🧪 Test account — submit any time.</div>';return;}
+  const steps=missionSteps(stop);
+  const left=steps.filter(s=>!s.ok).length;
+  box.innerHTML='<div class="mc-title">'+(left?'⚠️ '+left+' thing'+(left>1?'s':'')+' left before you can submit:':'✅ All done — hit Complete Mission!')+'</div>'+
+    '<div class="mc-list">'+steps.map(s=>'<span class="mc-item'+(s.ok?' ok':'')+'">'+(s.ok?'✅':'⬜')+' '+s.label+'</span>').join('')+'</div>';
+  box.classList.toggle('mc-ready',left===0);
 }
 
 /* ---------- photo proof ---------- */
@@ -685,7 +708,14 @@ function suggestedBonus(stop){return Math.min(25,Math.max(0,(winsCount(stop)-1))
 async function submitStop(stop,index,cs,root){
   if(session.test){progress.completed[stop.id]=true;progress.points[stop.id]=SCORE_PER_STOP;saveProgress();burst(root);setTimeout(showHome,900);return;}
   const problem=validateStop(stop,index);
-  if(problem){cs.textContent=problem;return;}
+  if(problem){
+    cs.textContent=problem;
+    const miss=missionSteps(stop).find(s=>!s.ok);
+    const sec=miss&&root.querySelector(miss.sel);
+    if(sec){sec.scrollIntoView({behavior:'smooth',block:'center'});sec.classList.add('flash-need');setTimeout(()=>sec.classList.remove('flash-need'),1600);}
+    sfx('lose');bearShout(problem);
+    return;
+  }
   const photo=progress.photos[stop.id]||{};
   /* every hunt-item photo goes to the boss too, labelled with the task */
   const hp=progress.huntPhotos[stop.id]||{};
