@@ -508,8 +508,6 @@ tbody tr:nth-child(1) td{font-weight:900;color:var(--orange-deep)}
 /* bear accessory */
 .bear-acc{position:absolute;top:-8px;right:-4px;font-size:1.3rem;pointer-events:none}
 
-.bear-name-pick{font-weight:900;margin:0 0 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.bear-name-pick select{border:3px solid var(--asphalt);border-radius:10px;padding:8px 10px;font-weight:900;background:#fff7ea;box-shadow:0 3px 0 var(--asphalt)}
 
 /* ===== Phase 1: story / accent / doodle / investing ===== */
 .story-box{max-height:200px;overflow-y:auto;background:#fffaf0;border:3px solid var(--asphalt);border-radius:var(--radius-sm);padding:12px;margin-bottom:10px;line-height:1.5}
@@ -633,13 +631,6 @@ tbody tr:nth-child(1) td{font-weight:900;color:var(--orange-deep)}
 .music-frame{width:100%;aspect-ratio:16/9;border:3px solid var(--asphalt);border-radius:var(--radius-sm);background:#000;display:block}
 
 
-/* ===== RPM overlay ===== */
-.rpm{position:fixed;inset:0;z-index:210;background:rgba(36,26,34,.9);display:grid;place-items:center;padding:10px}
-.rpm-card{width:min(920px,100%);height:min(680px,94vh);display:flex;flex-direction:column;gap:8px;background:var(--panel);border:5px solid var(--gold);border-radius:20px;padding:12px}
-.rpm-head{font-weight:900;text-align:center;font-size:.9rem}
-.rpm-frame{flex:1;width:100%;border:3px solid var(--asphalt);border-radius:14px;background:#111}
-.rpm-btn{width:100%;margin-top:10px}
-
 /* ===== auras ===== */
 .char-avatar{position:relative}
 .char-avatar[data-aura=gold]{filter:drop-shadow(0 0 26px rgba(255,194,75,.95))}
@@ -665,9 +656,30 @@ tbody tr:nth-child(1) td{font-weight:900;color:var(--orange-deep)}
 .char-name[data-plate=royal]{background:linear-gradient(180deg,#8a4d9e,#5b2a6b);color:var(--gold);padding:4px 18px;border-radius:999px;border:2px solid var(--gold)}
 .char-name[data-plate=royal]:before{content:"👑 "}
 model-viewer{--poster-color:transparent}
-.rpm-loading{text-align:center;font-weight:900;color:var(--purple);margin:0}
-.rpm-foot{display:grid;gap:8px}
-.rpm-alt{font-size:.78rem;font-weight:800;color:var(--orange-deep);text-align:center;text-decoration:none}
-.rpm-paste{display:flex;gap:8px}
-.rpm-url{flex:1;border:2px solid var(--line);border-radius:10px;padding:10px;font-size:.8rem}
-.rpm-paste .btn{min-height:42px;padding:8px 14px;font-size:.75rem}
+
+
+/* ===== admin: hunt photo gallery + lightbox + chip grants ===== */
+.admin-hunt{grid-column:1/-1;margin-top:8px}
+.admin-hunt-lbl{font-size:.8rem;font-weight:900;color:var(--muted);margin-bottom:6px}
+.admin-hunt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.hunt-thumb{margin:0;border:2px solid var(--line);border-radius:10px;overflow:hidden;background:#fffaf0}
+.hunt-thumb img{width:100%;height:80px;object-fit:cover;display:block;cursor:zoom-in}
+.hunt-missing{display:grid;place-items:center;height:80px;font-size:.7rem;color:var(--muted);font-weight:800}
+.hunt-thumb figcaption{font-size:.62rem;padding:4px 5px;line-height:1.25;color:var(--muted);font-weight:700}
+.lightbox{position:fixed;inset:0;z-index:220;background:rgba(20,14,20,.92);display:grid;place-items:center;padding:16px}
+.lightbox-inner{max-width:min(880px,100%);text-align:center;display:grid;gap:10px}
+.lightbox-inner img{max-width:100%;max-height:74vh;border-radius:14px;border:3px solid var(--gold)}
+.lightbox-inner p{color:#ffe9bd;font-weight:800;margin:0}
+.chip-grant{margin-top:18px;border-top:3px dashed var(--line);padding-top:14px}
+.chip-grant h3{margin:0 0 4px;font-size:1.05rem}
+.grant-note{font-size:.78rem;color:var(--muted);margin:0 0 10px}
+.grant-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.grant-row select,.grant-row input{border:2px solid var(--asphalt);border-radius:10px;padding:9px;font:inherit;font-weight:700}
+.grant-amt{width:90px;text-align:center}
+.grant-why{flex:1;min-width:140px}
+.grant-row .btn{min-height:42px;padding:9px 18px}
+.grant-quick{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.grant-chip{border:2px solid var(--cactus);background:#eef5e8;color:#3d6230;border-radius:999px;padding:5px 12px;font-weight:900;font-size:.76rem}
+.grant-minus{border-color:var(--rust);background:#fdeee9;color:var(--rust)}
+.grant-status{font-weight:800;color:var(--purple);min-height:1.3em;margin:8px 0 0;font-size:.84rem}
+.grant-standings{font-size:.78rem;color:var(--muted);margin-top:6px}
