@@ -721,3 +721,19 @@ model-viewer{--poster-color:transparent}
   font-weight:900;font-size:.95rem;max-width:88vw;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.4);
   opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
 .r66toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ===== STICKY SUBMIT BAR — always visible, always tappable ===== */
+.submit-bar{position:fixed;left:0;right:0;bottom:0;z-index:140;display:flex;align-items:center;gap:12px;
+  padding:12px 14px calc(12px + env(safe-area-inset-bottom));background:var(--asphalt);border-top:4px solid var(--gold);
+  box-shadow:0 -6px 20px rgba(0,0,0,.35)}
+.submit-bar.sb-ready{background:linear-gradient(180deg,#3d6230,#2a4722);border-top-color:#9cf29c}
+.sb-info{display:grid;flex:0 0 auto;line-height:1.15}
+.sb-info b{color:var(--gold);font-size:1.25rem;font-weight:950}
+.sb-info span{color:#ffe9bd;font-size:.7rem;font-weight:800;max-width:150px}
+.sb-btn{flex:1;min-height:54px;font-size:1rem}
+.sb-btn:disabled{opacity:.5}
+/* content clears the bar; Buck sits above it, never over the button */
+body.has-submit-bar .app{padding-bottom:190px}
+body.has-submit-bar .corner-mascot{bottom:calc(96px + env(safe-area-inset-bottom))}
+.corner-mascot{z-index:55}
+@media(max-width:420px){.sb-info span{max-width:110px;font-size:.64rem}.sb-btn{font-size:.86rem;min-height:50px}}
