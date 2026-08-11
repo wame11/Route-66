@@ -18,11 +18,6 @@ facts:['Barstow sits right in the Mojave Desert.','It has been a road and railwa
 huntPool:['Find the word Barstow on a sign or receipt.','Spot a cactus, yucca or desert plant.','Find a Route 66 shield shape.','Count three pickup trucks.','Find a mountain or rocky hill in the distance.','Spot a freight train or railway track.','Find the hotel ice machine.'],
 games:[["memory","Motel Match",{"icons":["🛏️","🔑","🧊","🚗","🌵","⭐"]}],["whack","Desert Critters",{"mole":"HORSE","decoy":"🪨"}],["runner","Freight Hop",{"p":"🚂","o":"🪨"}],["timing","Neon Fix",{}],["tap","Ice Machine",{"t":"🧊"}]],
 quizPool:[["Roughly how hot can the Mojave Desert get in August?","Over 40°C",["Over 40°C","About 15°C","Below freezing"]],["Barstow sits roughly halfway between LA and which gambling city?","Las Vegas",["Las Vegas","Miami","Chicago"]],["The Mojave is the driest desert in North America.","true"],["Barstow is famous for its beaches.","false"]]},
-{id:'needles',lat:34.8481,lng:-114.6141,lat:34.8483,lng:-114.6141,day:'13 Aug 2026',unlock:'2026-08-13',emoji:'🛣️',title:'Needles',hotel:'Best Western Plus King’s Inn, Kingman',loc:'Needles, California',
-facts:['Needles is right next to the Colorado River.','It is one of the hottest towns along old Route 66.','It is named after the pointed mountain peaks nearby.'],
-huntPool:['Find the word Needles.','Spot the Colorado River or a river sign.','Find a very dry-looking landscape.','Spot a train or railway.','Find an old Route 66-style motel sign.','Spot a temperature display.','Find a pointy mountain peak.'],
-games:[["runner","Desert Dash",{"p":"🦎","o":"🌵"}],["catch","River Splash",{"good":["💧","🐟"],"bad":["🪨"],"catcher":"🛶"}],["dodge","Heatwave",{"p":"🦎","o":"☀️"}],["tap","Thermometer Smash",{"t":"🌡️"}],["hl","Temperature Cards",{}]],
-quizPool:[["Which river runs beside Needles?","The Colorado",["The Colorado","The Thames","The Mississippi"]],["Needles often records the HOTTEST temperature in the whole USA.","true"],["Which state is directly across the river from Needles?","Arizona",["Arizona","Texas","Florida"]],["Needles is named after snow-capped mountains.","false"]]},
 {id:'oatman',lat:35.0261,lng:-114.3833,lat:35.0261,lng:-114.383,day:'13 Aug 2026',unlock:'2026-08-13',emoji:'🐴',title:'Oatman',hotel:'Best Western Plus King’s Inn, Kingman',loc:'Oatman, Arizona',
 facts:['Oatman started as a gold mining town.','Wild burros (small donkeys) often wander down the main street.','The twisty mountain road into Oatman is part of the old Route 66.'],
 huntPool:['Find a burro (donkey).','Spot an old wooden shop front.','Find a sign mentioning Route 66.','Look for something from the mining days.','Find the funniest souvenir in a shop window.','Spot a burro eating something.','Find a horseshoe anywhere.'],
@@ -101,7 +96,7 @@ quizPool:[["What is inside the black pyramid hotel near Mandalay Bay?","The Luxo
 ];
 
 /* ===== V3 DATA ===== */
-const STOP_COORDS={heathrow:[51.4700,-0.4543],lax:[33.9416,-118.4085],barstow:[34.8958,-117.0173],needles:[34.8483,-114.6141],oatman:[35.0261,-114.3830],kingman:[35.1894,-114.0530],peach:[35.5292,-113.4258],seligman:[35.3258,-112.8747],bearizona:[35.2494,-112.1901],grand:[35.9528,-112.1180],cameron:[35.8747,-111.4104],monument:[36.9980,-110.0985],forrest:[37.1015,-109.9903],bluff:[37.2847,-109.5518],horseshoe:[36.8791,-111.5104],page:[36.9147,-111.4558],antelope:[36.8619,-111.3743],stgeorge:[37.0965,-113.5684],vegas:[36.0955,-115.1761]};
+const STOP_COORDS={heathrow:[51.4700,-0.4543],lax:[33.9416,-118.4085],barstow:[34.8958,-117.0173],oatman:[35.0261,-114.3830],kingman:[35.1894,-114.0530],peach:[35.5292,-113.4258],seligman:[35.3258,-112.8747],bearizona:[35.2494,-112.1901],grand:[35.9528,-112.1180],cameron:[35.8747,-111.4104],monument:[36.9980,-110.0985],forrest:[37.1015,-109.9903],bluff:[37.2847,-109.5518],horseshoe:[36.8791,-111.5104],page:[36.9147,-111.4558],antelope:[36.8619,-111.3743],stgeorge:[37.0965,-113.5684],vegas:[36.0955,-115.1761]};
 const HEADSUP_PACKS={
 'Road Trip':['CACTUS','BURRO','MOTEL','PETROL STATION','GRAND CANYON','TUMBLEWEED','COWBOY','ROUTE 66','TRUCK STOP','DESERT','RATTLESNAKE','LAS VEGAS','SLOT MACHINE','CAMPFIRE','SUITCASE','PASSPORT','JET LAG','HIRE CAR','MOTORWAY','ROADRUNNER','SHERIFF','WILD WEST','HOOVER DAM','PALM TREE','MILKSHAKE','DINER','FREEWAY','LICENSE PLATE','SUNBURN','AIR CON'],
 'Animals':['BEAR','WOLF','BISON','EAGLE','COYOTE','SCORPION','LIZARD','DONKEY','HORSE','SQUIRREL','SNAKE','ELK','FOX','BAT','OWL','MOUNTAIN LION','JACKRABBIT','TARANTULA','ROADRUNNER','DEER'],
@@ -122,8 +117,7 @@ const ROUTE_QUIZ=[
 ['Seligman helped inspire which Pixar film?',['Cars','Up','Coco','Brave'],0],
 ['How deep is the Grand Canyon at most?',['Over a mile','100 metres','10 miles','50 metres'],0],
 ['What is Horseshoe Bend?',['A river curve','A rollercoaster','A horse ranch','A bridge'],0],
-['Needles is named after what?',['Pointy peaks','Sewing kits','Cactus spines','Pine trees'],0],
-['Which town was built for dam workers in 1957?',['Page','Bluff','Kingman','Needles'],0],
+['Which town was built for dam workers in 1957?',['Page','Bluff','Kingman','Barstow'],0],
 ['What was mined at Oatman?',['Gold','Coal','Diamonds','Salt'],0],
 ['Whose land is Monument Valley part of?',['Navajo Nation','Hualapai','Apache','Sioux'],0],
 ['Peach Springs sits on whose reservation?',['Hualapai','Navajo','Cherokee','Hopi'],0],
