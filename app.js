@@ -30,7 +30,7 @@ const els={
 
 /* ---------- storage ---------- */
 function freshProgress(){return {completed:{},submitted:{},photos:{},hunt:{},huntPhotos:{},game:{},quiz:{},points:{},chips:25,chipGrant:{}};}
-function freshShared(){return {submissions:[],updatedAt:null,players:[]};}
+function freshShared(){return {submissions:[],updatedAt:null,players:[],grants:[]};}
 function readJson(k,f=null){try{const v=localStorage.getItem(k);return v?JSON.parse(v):f;}catch{return f;}}
 function writeJson(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch{return false;}}
 function progressKey(){return STORAGE.progressPrefix+(session?.username||'guest');}
@@ -132,7 +132,7 @@ function renderHome(){
   els.adminPanel.classList.toggle('hidden',!isAdmin());
   els.leaderboard.classList.toggle('hidden',!isAdmin());
   els.hud.classList.toggle('hidden',isAdmin());
-  renderAdminPanel();renderLeaderboard();renderReward();
+  renderAdminPanel();renderChipGrant();renderLeaderboard();renderReward();
   if(!isAdmin()){
     const done=STOPS.filter(s=>statusForStop(s.id)==='approved').length;
     const pct=Math.round(done/STOPS.length*100);
@@ -173,7 +173,7 @@ function renderLevel(index){
   const stop=STOPS[index];
   const status=statusForStop(stop.id),locked=!unlocked(index);
   const labels={approved:['Mission cleared ⭐','🏆','You smashed it — next stop unlocked!'],
-    pending:['Checking your mission','🕵️','The boss is reviewing your photos and answers.'],
+    pending:['⏳ ON HOLD — waiting for admin approval','🕵️','The boss is checking every photo and your answers. You\u2019ll get your points once it\u2019s approved.'],
     rejected:['Mission failed — retry!','💥','Have another go and resubmit.'],
     ready:['Mission briefing','🎯','Complete all objectives, then submit!'],
     admin:['Admin view','👑','Approve from the map screen.']};
@@ -208,7 +208,7 @@ function renderLevel(index){
   if(isAdmin())submit.classList.add('hidden');
   if(locked){submit.disabled=true;root.querySelectorAll('input,textarea,button,canvas').forEach(e=>{if(!e.classList.contains('submit'))e.disabled=true;});}
   if(status==='approved'){submit.disabled=true;submit.textContent='⭐ Mission cleared';}
-  if(status==='pending'){submit.disabled=true;submit.textContent='🕵️ Being checked…';}
+  if(status==='pending'){submit.disabled=true;submit.textContent='⏳ On hold — admin checking…';}
   submit.addEventListener('click',()=>submitStop(stop,index,cs,root));
 }
 function refreshTaskTags(root,stop){
@@ -687,11 +687,18 @@ async function submitStop(stop,index,cs,root){
   const problem=validateStop(stop,index);
   if(problem){cs.textContent=problem;return;}
   const photo=progress.photos[stop.id]||{};
+  /* every hunt-item photo goes to the boss too, labelled with the task */
+  const hp=progress.huntPhotos[stop.id]||{};
+  const tasks=huntFor(stop);
+  const huntImages=Object.keys(hp).map(k=>({index:Number(k),label:tasks[Number(k)]||('Item '+(Number(k)+1)),dataUrl:hp[k]?.dataUrl||''})).filter(x=>x.dataUrl);
   const sub={id:session.username+'-'+stop.id+'-'+Date.now(),username:session.username,stopId:stop.id,stopTitle:stop.title,day:stop.day,hotel:stop.hotel,
     score:SCORE_PER_STOP,bonus:0,status:'pending',submittedAt:new Date().toISOString(),updatedAt:new Date().toISOString(),
-    proofName:photo.name||'',proofImage:photo.dataUrl||'',activity:arcadeSummary(stop),chips:Number(progress.chips||0),playBonus:Number(progress.playBonus||0),suggestBonus:suggestedBonus(stop)};
+    proofName:photo.name||'',proofImage:photo.dataUrl||'',activity:arcadeSummary(stop),chips:Number(progress.chips||0),playBonus:Number(progress.playBonus||0),suggestBonus:suggestedBonus(stop),
+    huntImages:huntImages};
+  /* keep the local copy light (photos live on the backend) so storage never fills */
+  const localCopy={...sub,huntImages:huntImages.map(h=>({index:h.index,label:h.label,url:''}))};
   const i=shared.submissions.findIndex(x=>x.username===sub.username&&x.stopId===sub.stopId&&x.status==='pending');
-  if(i>=0)shared.submissions[i]=sub;else shared.submissions.push(sub);
+  if(i>=0)shared.submissions[i]=localCopy;else shared.submissions.push(localCopy);
   saveShared();
   progress.submitted[stop.id]={id:sub.id,status:'pending'};saveProgress();
   cs.textContent='Mission sent to the boss! 🎉';burst(root);bearCelebrate('MISSION COMPLETE! Legend! 🏆');syncPlayer();
@@ -700,6 +707,71 @@ async function submitStop(stop,index,cs,root){
 }
 
 /* ---------- admin / leaderboard / reward ---------- */
+/* ---- tap any admin photo to see it full-size ---- */
+function bigPhoto(src,label){
+  if(!src)return;
+  const o=document.createElement('div');o.className='lightbox';
+  o.innerHTML='<div class="lightbox-inner"><img alt="photo"><p></p><button type="button" class="btn btn-quiet">✕ Close</button></div>';
+  o.querySelector('img').src=src;o.querySelector('p').textContent=label||'';
+  o.querySelector('button').addEventListener('click',()=>o.remove());
+  o.addEventListener('click',e=>{if(e.target===o)o.remove();});
+  document.body.appendChild(o);
+}
+
+/* ---- ADMIN: give bonus chips to any player ---- */
+function renderChipGrant(){
+  if(!isAdmin())return;
+  const host=document.getElementById('chipGrantBox');if(!host)return;
+  const chips=chipStandings();
+  host.innerHTML='<h3>🪙 Give bonus chips</h3>'+
+    '<p class="grant-note">Reward good behaviour, spotting things, being helpful — anything you like. Chips count toward the Chip Champion prize.</p>'+
+    '<div class="grant-row">'+
+      '<select class="grant-who">'+PLAYER_NAMES.map(n=>'<option>'+escapeHtml(n)+'</option>').join('')+'</select>'+
+      '<input class="grant-amt" type="number" value="10" min="-500" max="500" step="5">'+
+      '<input class="grant-why" placeholder="Reason (optional)">'+
+      '<button type="button" class="btn btn-primary grant-go">Give</button>'+
+    '</div>'+
+    '<div class="grant-quick">'+[5,10,25,50].map(n=>'<button type="button" class="grant-chip" data-n="'+n+'">+'+n+'</button>').join('')+
+      '<button type="button" class="grant-chip grant-minus" data-n="-10">−10 (fine)</button></div>'+
+    '<p class="grant-status"></p>'+
+    '<div class="grant-standings">Current chips — '+(chips.size?[...chips.entries()].sort((a,b)=>b[1]-a[1]).map(([n,c])=>escapeHtml(n)+': <b>'+c+'</b>').join(' · '):'none reported yet')+'</div>';
+  host.querySelectorAll('.grant-chip').forEach(b=>b.addEventListener('click',()=>{host.querySelector('.grant-amt').value=b.dataset.n;}));
+  host.querySelector('.grant-go').addEventListener('click',async()=>{
+    const who=host.querySelector('.grant-who').value;
+    const amt=Number(host.querySelector('.grant-amt').value)||0;
+    const why=host.querySelector('.grant-why').value.trim();
+    const st=host.querySelector('.grant-status');
+    if(!amt){st.textContent='Enter an amount first.';return;}
+    st.textContent='Sending…';
+    const r=await apiPost({action:'grantChips',username:who,amount:amt,reason:why,createdBy:session.username,adminKey:session.adminKey});
+    if(r&&r.ok){st.textContent='✅ '+(amt>0?'Gave ':'Took ')+Math.abs(amt)+' chips '+(amt>0?'to ':'from ')+who+(why?' — "'+why+'"':'')+'. They get it next time they open the app.';
+      host.querySelector('.grant-why').value='';shared.grants=r.grants||shared.grants;saveShared();}
+    else st.textContent='❌ Could not reach the server. Check the backend is connected.';
+  });
+}
+
+/* ---- PLAYER: pick up any chips the boss granted ---- */
+function applyGrants(){
+  if(!session||isAdmin()||session.test)return;
+  const list=(shared.grants||[]).filter(g=>g.username===session.username);
+  if(!list.length)return;
+  progress.grantsApplied=progress.grantsApplied||{};
+  let total=0,reasons=[];
+  list.forEach(g=>{
+    if(progress.grantsApplied[g.id])return;
+    progress.grantsApplied[g.id]=true;
+    const amt=Number(g.amount||0);
+    progress.chips=Math.max(0,(progress.chips||0)+amt);
+    if(amt>0)grantEarn(amt);
+    total+=amt;if(g.reason)reasons.push(g.reason);
+  });
+  if(total!==0){
+    saveProgress();updateChips();syncPlayer();
+    const msg=(total>0?'🎁 The boss gave you +'+total+' chips!':'😬 The boss took '+Math.abs(total)+' chips.')+(reasons.length?' ('+reasons.join(', ')+')':'');
+    setTimeout(()=>{bearCelebrate(msg);sfx(total>0?'jackpot':'lose');},1200);
+  }
+}
+
 function renderAdminPanel(){
   if(!isAdmin())return;
   const pending=shared.submissions.filter(i=>i.status==='pending');
@@ -707,13 +779,30 @@ function renderAdminPanel(){
   pending.forEach(item=>{
     const stop=stopById(item.stopId);
     const row=document.createElement('article');row.className='admin-row';
+    const hunts=Array.isArray(item.huntImages)?item.huntImages.filter(h=>h&&(h.url||h.dataUrl)):[];
     row.innerHTML='<div><div class="admin-title"></div><div class="admin-meta"></div></div><div class="admin-photo"></div>'+
-      '<div class="admin-controls"><label>Bonus <input class="bonus" type="number" min="0" max="25" step="5" value="0"></label>'+
+      '<div class="admin-hunt"></div>'+
+      '<div class="admin-controls"><label>Bonus pts <input class="bonus" type="number" min="0" max="25" step="5" value="0"></label>'+
       '<button class="btn btn-primary approve" type="button">Approve</button><button class="btn btn-danger reject" type="button">Reject</button></div>';
     row.querySelector('.admin-title').textContent=item.username+' — '+(stop?.title||item.stopTitle);
-    row.querySelector('.admin-meta').textContent=(item.activity||'')+(item.proofImage?'':' · (no photo)')+(item.suggestBonus?' · suggested bonus: '+item.suggestBonus:'');
+    row.querySelector('.admin-meta').textContent=(item.activity||'')+(item.proofImage?'':' · (no arrival photo)')+
+      ' · hunt photos: '+hunts.length+(item.suggestBonus?' · suggested bonus: '+item.suggestBonus:'');
     if(item.suggestBonus)row.querySelector('.bonus').value=item.suggestBonus;
-    if(item.proofImage){const img=document.createElement('img');img.src=item.proofImage;img.alt='proof';row.querySelector('.admin-photo').appendChild(img);}
+    if(item.proofImage){const img=document.createElement('img');img.src=item.proofImage;img.alt='arrival photo';img.addEventListener('click',()=>bigPhoto(item.proofImage,'Arrival photo'));row.querySelector('.admin-photo').appendChild(img);}
+    const hw=row.querySelector('.admin-hunt');
+    if(hunts.length){
+      hw.innerHTML='<div class="admin-hunt-lbl">📸 Scavenger hunt photos — tap any to enlarge & check:</div><div class="admin-hunt-grid"></div>';
+      const grid=hw.querySelector('.admin-hunt-grid');
+      hunts.forEach(h=>{
+        const src=h.url||h.dataUrl;
+        const cell=document.createElement('figure');cell.className='hunt-thumb';
+        cell.innerHTML=(src?'<img alt="hunt photo">':'<span class="hunt-missing">on server</span>')+'<figcaption></figcaption>';
+        cell.querySelector('figcaption').textContent=h.label||'';
+        const im=cell.querySelector('img');
+        if(im){im.src=src;im.addEventListener('click',()=>bigPhoto(src,h.label||''));}
+        grid.appendChild(cell);
+      });
+    } else hw.innerHTML='<div class="admin-hunt-lbl">No hunt photos attached to this submission.</div>';
     row.querySelector('.approve').addEventListener('click',()=>approveSubmission(item.id,row.querySelector('.bonus').value));
     row.querySelector('.reject').addEventListener('click',()=>rejectSubmission(item.id));
     els.adminRows.appendChild(row);
@@ -771,7 +860,7 @@ async function syncShared(){
   if(!CONFIG.sheetEndpoint){loadShared();applySharedToProgress();renderHome();return;}
   try{const url=new URL(CONFIG.sheetEndpoint);url.searchParams.set('action','state');url.searchParams.set('t',Date.now());
     const r=await fetch(url.toString());shared=normaliseShared(await r.json());saveShared();}catch{loadShared();}
-  applySharedToProgress();renderHome();syncPlayer();
+  applySharedToProgress();applyGrants();renderHome();syncPlayer();
 }
 async function postRemote(payload){
   if(!CONFIG.sheetEndpoint)return null;
@@ -800,7 +889,7 @@ function syncPlayer(){
   },1500);
 }
 function normaliseShared(data){
-  const c=freshShared();c.updatedAt=data?.updatedAt||null;c.players=Array.isArray(data?.players)?data.players:[];
+  const c=freshShared();c.updatedAt=data?.updatedAt||null;c.players=Array.isArray(data?.players)?data.players:[];c.grants=Array.isArray(data?.grants)?data.grants:[];
   c.submissions=Array.isArray(data?.submissions)?data.submissions.map(i=>({
     id:String(i.id||i.ID||''),username:String(i.username||i.Username||''),stopId:String(i.stopId||i.StopID||''),
     stopTitle:String(i.stopTitle||i.StopTitle||''),day:String(i.day||i.Day||''),hotel:String(i.hotel||i.Hotel||''),
