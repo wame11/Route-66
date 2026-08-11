@@ -152,10 +152,10 @@ function renderMap(){
     const status=statusForStop(stop.id),isLocked=!unlocked(index);
     const node=document.createElement('div');
     node.className='level-node '+(index%2===0?'up':'down')+' '+status+(isLocked?' is-locked':'')+(index===nextIndex&&!isLocked?' is-next':'');
-    const sub=isLocked?stop.day:status==='approved'?'Cleared!':status==='pending'?'Checking…':'Play';
+    const sub=isLocked?stop.day:status==='approved'?'✓ Cleared!':status==='pending'?'⏳ In review':'Play';
     node.innerHTML='<div class="level-circle" role="button" tabindex="0"><span class="level-num">'+(index+1)+'</span><span class="level-emoji">'+stop.emoji+'</span></div>'+
       (index===nextIndex&&!isLocked?'<div class="mascot">🚙</div>':'')+
-      '<div class="level-stars">'+(status==='approved'?'★★★':'')+'</div>'+
+      '<div class="level-stars">'+(status==='approved'?'★★★':status==='pending'?'⏳':'')+'</div>'+
       '<div class="level-title"></div><div class="level-sub">'+sub+'</div>';
     node.querySelector('.level-title').textContent=stop.title;
     if(!isLocked){
@@ -193,7 +193,7 @@ function renderLevel(index){
       taskSection(4,'<span class="game-name"></span>','arcade','arcade-sec','<p class="hint game-prompt"></p><div class="arcade"></div>')+
       taskSection(5,'Boss quiz','beat it!','quiz-sec','<p class="hint">Your questions — no copying, everyone gets different ones!</p><div class="quiz"></div><button class="btn btn-secondary check" type="button">Check answers</button><p class="quizResult"></p>')+
       '<div class="mission-check"></div>'+
-      '<div class="complete-row"><button class="btn btn-primary submit" type="button">🚩 Complete mission</button><span class="completeStatus"></span></div>'+
+      '<div class="complete-row"><button class="btn btn-primary submit" type="button">📤 Submit for review</button><span class="completeStatus"></span></div>'+
     '</div>';
   root.querySelector('h1').textContent=stop.title;
   root.querySelector('.hero-meta').textContent='Level '+(index+1)+' · '+stop.day+' · '+stop.loc;
@@ -203,15 +203,35 @@ function renderLevel(index){
   root.querySelector('.intel').classList.add('task-complete');
 
   els.levelBody.innerHTML='';els.levelBody.appendChild(root);
-  renderProof(root,stop);renderHunt(root,stop);renderArcade(root,stop);renderQuiz(root,stop);refreshTaskTags(root,stop);
 
+  /* WIRE THE BUTTON FIRST — so a failure in any section below can never kill it */
   const submit=root.querySelector('.submit'),cs=root.querySelector('.completeStatus');
+  CURRENT_LEVEL={stop:stop,index:index,cs:cs,root:root};
   if(isAdmin())submit.classList.add('hidden');
+  submit.dataset.wired='1';submit.addEventListener('click',()=>submitStop(stop,index,cs,root));
+
+  /* each section is isolated: one broken part can't break the others */
+  const safe=(name,fn)=>{try{fn();}catch(err){console.error('[R66] '+name+' failed:',err);
+    const w=root.querySelector('.'+name+'-sec')||root;const p=document.createElement('p');
+    p.className='sec-error';p.textContent='⚠️ This bit had a hiccup — the rest still works.';w.appendChild(p);}};
+  safe('proof',()=>renderProof(root,stop));
+  safe('hunt',()=>renderHunt(root,stop));
+  safe('arcade',()=>renderArcade(root,stop));
+  safe('quiz',()=>renderQuiz(root,stop));
+  safe('tags',()=>refreshTaskTags(root,stop));
+
   if(locked){submit.disabled=true;root.querySelectorAll('input,textarea,button,canvas').forEach(e=>{if(!e.classList.contains('submit'))e.disabled=true;});}
   if(status==='approved'){submit.disabled=true;submit.textContent='⭐ Mission cleared';}
-  if(status==='pending'){submit.disabled=true;submit.textContent='⏳ On hold — admin checking…';}
-  submit.addEventListener('click',()=>submitStop(stop,index,cs,root));
+  if(status==='pending'){submit.disabled=false;submit.textContent='⏳ Waiting for review — tap to resend';}
 }
+/* belt-and-braces: a delegated listener so the button works even if wiring failed */
+let CURRENT_LEVEL=null;
+document.addEventListener('click',e=>{
+  const b=e.target&&e.target.closest&&e.target.closest('.submit');
+  if(!b||b.disabled||!CURRENT_LEVEL)return;
+  if(b.dataset.wired)return;             /* the direct listener already handled it */
+  submitStop(CURRENT_LEVEL.stop,CURRENT_LEVEL.index,CURRENT_LEVEL.cs,CURRENT_LEVEL.root);
+});
 function refreshTaskTags(root,stop){
   root.querySelector('.proof')?.classList.toggle('task-complete',Boolean(progress.photos[stop.id]?.dataUrl));
   const hp=progress.huntPhotos[stop.id]||{};
