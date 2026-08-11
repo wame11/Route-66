@@ -7,12 +7,27 @@ const ACCOUNTS={
   admin:{role:'admin',hash:'7f3d56bb44da1a1f5239ac9db712488db90f135d999290ed9104eba8691096e2'}
 };
 /* Paste your Google Apps Script /exec URL into sheetEndpoint to sync across devices. */
+const DATA_VERSION='reset-2026-08-A'; /* bump this to force every device to start fresh */
 const CONFIG={sheetEndpoint:'https://script.google.com/macros/s/AKfycbx_qOmtVWPm7BuClVf1Yj-w4pV7OyWgEzxntc89hgxNeQ9FB-acd6j5NcC0rO7wgkGy/exec',sheetUrl:'',youtubeKey:'AIzaSyC97QvLqWtLZ339RY01Zfv2ghEVJWr14TE'};
 /* Departure: 12 Aug 2026, 11:40 UK time (BST = UTC+1) */
 const DEPARTURE=Date.UTC(2026,7,12,10,40,0);
 const SCORE_PER_STOP=100;
 const PLAYER_NAMES=Object.keys(ACCOUNTS).filter(n=>ACCOUNTS[n].role==='player');
-const STORAGE={session:'route66-session-v4',shared:'route66-shared-v4',progressPrefix:'route66-progress-v4-'};
+/* ⚠️ RESET SWITCH: change v4 -> v5 -> v6 ... to wipe EVERY device's saved progress automatically */
+const STORAGE={session:'route66-session-v5',shared:'route66-shared-v5',progressPrefix:'route66-progress-v5-'};
+/* clear any older-version data so phones don't hoard dead photos */
+try{Object.keys(localStorage).forEach(k=>{if(/^route66-(session|shared|progress)-v[0-4]/.test(k))localStorage.removeItem(k);});}catch(_){}
+const RESET_KEY='route66-resetstamp';
+/* wipes EVERYTHING stored on this device for the game */
+function wipeLocal(keepStamp){
+  const stamp=keepStamp||localStorage.getItem(RESET_KEY)||'';
+  const kill=[];
+  for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&(k.indexOf('route66')===0||k.indexOf('r66-')===0))kill.push(k);}
+  kill.forEach(k=>localStorage.removeItem(k));
+  if(stamp)localStorage.setItem(RESET_KEY,stamp);
+}
+/* ?reset=1 in the address bar wipes this device instantly */
+try{if(new URLSearchParams(location.search).get('reset')==='1'){wipeLocal();location.replace(location.pathname);}}catch(_){/**/}
 const AVATARS={Jacob:'🦖',Lily:'🦄',Hannah:'🌻',Ethan:'🚀',admin:'👑',test:'🧪'};
 
 let session=null,progress=freshProgress(),shared=freshShared(),currentLevel=null,countdownTimer=null,activeGame=null;
@@ -29,14 +44,23 @@ const els={
 };
 
 /* ---------- storage ---------- */
-function freshProgress(){return {completed:{},submitted:{},photos:{},hunt:{},huntPhotos:{},game:{},quiz:{},points:{},chips:25,chipGrant:{}};}
+/* one-time hard reset across all devices */
+(function hardReset(){
+  try{
+    if(localStorage.getItem('r66-data-version')===DATA_VERSION)return;
+    Object.keys(localStorage).filter(k=>k.startsWith('r66')).forEach(k=>localStorage.removeItem(k));
+    localStorage.setItem('r66-data-version',DATA_VERSION);
+    console.log('[R66] fresh start applied');
+  }catch(_){/**/}
+})();
+function freshProgress(){return {completed:{},submitted:{},photos:{},hunt:{},huntPhotos:{},game:{},quiz:{},points:{},chips:85,chipGrant:{}};}
 function freshShared(){return {submissions:[],updatedAt:null,players:[],grants:[]};}
 function readJson(k,f=null){try{const v=localStorage.getItem(k);return v?JSON.parse(v):f;}catch{return f;}}
 function writeJson(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch{return false;}}
 function progressKey(){return STORAGE.progressPrefix+(session?.username||'guest');}
 function loadProgress(){progress=mergeProgress(readJson(progressKey(),null));if(session&&session.test)progress.chips=999999;}
 function saveProgress(){if(session?.role!=='admin'&&!writeJson(progressKey(),progress)){alert('Phone storage is full — oldest photos may not save. Ask Ethan to sync!');}}
-function mergeProgress(s){const m=freshProgress();if(!s||typeof s!=='object')return m;Object.keys(m).forEach(k=>{if(k==='chips'){m.chips=Number.isFinite(s.chips)?s.chips:25;}else{m[k]=s[k]&&typeof s[k]==='object'?s[k]:m[k];}});return m;}
+function mergeProgress(s){const m=freshProgress();if(!s||typeof s!=='object')return m;Object.keys(m).forEach(k=>{if(k==='chips'){m.chips=Number.isFinite(s.chips)?s.chips:85;}else{m[k]=s[k]&&typeof s[k]==='object'?s[k]:m[k];}});return m;}
 function loadShared(){shared=normaliseShared(readJson(STORAGE.shared,freshShared()));}
 function saveShared(){shared.updatedAt=new Date().toISOString();writeJson(STORAGE.shared,shared);}
 
@@ -168,6 +192,14 @@ function renderMap(){
   });
 }
 
+/* big centre-screen message — so a button tap always shows something */
+function toast(msg,ms){
+  let t=document.getElementById('r66toast');
+  if(!t){t=document.createElement('div');t.id='r66toast';t.className='r66toast';document.body.appendChild(t);}
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),ms||2600);
+}
+
 /* ---------- LEVEL PAGE ---------- */
 function renderLevel(index){
   const stop=STOPS[index];
@@ -208,7 +240,9 @@ function renderLevel(index){
   const submit=root.querySelector('.submit'),cs=root.querySelector('.completeStatus');
   CURRENT_LEVEL={stop:stop,index:index,cs:cs,root:root};
   if(isAdmin())submit.classList.add('hidden');
-  submit.dataset.wired='1';submit.addEventListener('click',()=>submitStop(stop,index,cs,root));
+  submit.dataset.wired='1';
+  submit.onclick=function(){toast('Checking your mission…');submitStop(stop,index,cs,root);};
+  submit.addEventListener('click',()=>{},{passive:true});
 
   /* each section is isolated: one broken part can't break the others */
   const safe=(name,fn)=>{try{fn();}catch(err){console.error('[R66] '+name+' failed:',err);
@@ -229,7 +263,7 @@ let CURRENT_LEVEL=null;
 document.addEventListener('click',e=>{
   const b=e.target&&e.target.closest&&e.target.closest('.submit');
   if(!b||b.disabled||!CURRENT_LEVEL)return;
-  if(b.dataset.wired)return;             /* the direct listener already handled it */
+  if(b.onclick)return;                    /* the direct handler already ran */
   submitStop(CURRENT_LEVEL.stop,CURRENT_LEVEL.index,CURRENT_LEVEL.cs,CURRENT_LEVEL.root);
 });
 function refreshTaskTags(root,stop){
@@ -729,7 +763,7 @@ async function submitStop(stop,index,cs,root){
   if(session.test){progress.completed[stop.id]=true;progress.points[stop.id]=SCORE_PER_STOP;saveProgress();burst(root);setTimeout(showHome,900);return;}
   const problem=validateStop(stop,index);
   if(problem){
-    cs.textContent=problem;
+    cs.textContent=problem;toast(problem,3200);
     const miss=missionSteps(stop).find(s=>!s.ok);
     const sec=miss&&root.querySelector(miss.sel);
     if(sec){sec.scrollIntoView({behavior:'smooth',block:'center'});sec.classList.add('flash-need');setTimeout(()=>sec.classList.remove('flash-need'),1600);}
@@ -751,7 +785,7 @@ async function submitStop(stop,index,cs,root){
   if(i>=0)shared.submissions[i]=localCopy;else shared.submissions.push(localCopy);
   saveShared();
   progress.submitted[stop.id]={id:sub.id,status:'pending'};saveProgress();
-  cs.textContent='Mission sent to the boss! 🎉';burst(root);bearCelebrate('MISSION COMPLETE! Legend! 🏆');syncPlayer();
+  cs.textContent='Mission sent to the boss! 🎉';toast('✅ Sent for review!');burst(root);bearCelebrate('MISSION COMPLETE! Legend! 🏆');syncPlayer();
   await postRemote({action:'submit',submission:sub});
   setTimeout(showHome,900);
 }
@@ -768,7 +802,34 @@ function bigPhoto(src,label){
   document.body.appendChild(o);
 }
 
+/* ---- ADMIN: wipe everything and start the game over ---- */
+async function resetEverything(){
+  if(!isAdmin())return;
+  if(!confirm('RESET THE WHOLE GAME?\n\nThis clears every submission, all points, all chips, characters and season progress for EVERYONE.\n\nThis cannot be undone.'))return;
+  if(!confirm('Really sure? Everyone goes back to zero (85 starting chips).'))return;
+  const st=document.querySelector('.reset-status');
+  if(st)st.textContent='Wiping the server…';
+  const r=await apiPost({action:'resetAll',adminKey:session.adminKey});
+  /* wipe this device too */
+  try{Object.keys(localStorage).forEach(k=>{if(/^route66-/.test(k))localStorage.removeItem(k);});}catch(_){}
+  if(st)st.textContent=(r&&r.ok)?'✅ Server wiped. Reloading…':'⚠️ Server not reachable — this device is wiped. Redeploy or check the backend.';
+  setTimeout(()=>location.reload(),1400);
+}
+
 /* ---- ADMIN: give bonus chips to any player ---- */
+async function resetEverything(){
+  if(!isAdmin())return;
+  if(!confirm('RESET EVERYTHING?\n\nThis wipes all points, chips, photos, submissions and characters for EVERY player on EVERY device.\nEveryone restarts with 85 chips and 0 points.\n\nThis cannot be undone.'))return;
+  if(!confirm('Really sure? Last chance.'))return;
+  const st=document.querySelector('.reset-status');
+  if(st)st.textContent='Resetting…';
+  const r=await apiPost({action:'resetAll',adminKey:session.adminKey,createdBy:session.username});
+  if(r&&r.ok){
+    if(st)st.textContent='✅ Everything reset. Other devices wipe themselves next time they open the app.';
+    wipeLocal(String(r.resetStamp||Date.now()));
+    setTimeout(()=>location.reload(),1500);
+  } else if(st)st.textContent='❌ Could not reach the server — check the backend is connected.';
+}
 function renderChipGrant(){
   if(!isAdmin())return;
   const host=document.getElementById('chipGrantBox');if(!host)return;
@@ -784,8 +845,10 @@ function renderChipGrant(){
     '<div class="grant-quick">'+[5,10,25,50].map(n=>'<button type="button" class="grant-chip" data-n="'+n+'">+'+n+'</button>').join('')+
       '<button type="button" class="grant-chip grant-minus" data-n="-10">−10 (fine)</button></div>'+
     '<p class="grant-status"></p>'+
-    '<div class="grant-standings">Current chips — '+(chips.size?[...chips.entries()].sort((a,b)=>b[1]-a[1]).map(([n,c])=>escapeHtml(n)+': <b>'+c+'</b>').join(' · '):'none reported yet')+'</div>';
+    '<div class="reset-zone"><button type="button" class="btn btn-danger reset-all">♻️ RESET EVERYTHING (all players, all devices)</button><p class="reset-status"></p></div>'+'<div class="grant-standings">Current chips — '+(chips.size?[...chips.entries()].sort((a,b)=>b[1]-a[1]).map(([n,c])=>escapeHtml(n)+': <b>'+c+'</b>').join(' · '):'none reported yet')+'</div>';
   host.querySelectorAll('.grant-chip').forEach(b=>b.addEventListener('click',()=>{host.querySelector('.grant-amt').value=b.dataset.n;}));
+  host.querySelector('.reset-all')?.addEventListener('click',resetEverything);
+  host.querySelector('.reset-all')?.addEventListener('click',resetEverything);
   host.querySelector('.grant-go').addEventListener('click',async()=>{
     const who=host.querySelector('.grant-who').value;
     const amt=Number(host.querySelector('.grant-amt').value)||0;
@@ -907,9 +970,12 @@ function renderReward(){
 
 /* ---------- sync (Google Apps Script) ---------- */
 async function syncShared(){
+  /* reset check runs first */
   if(!CONFIG.sheetEndpoint){loadShared();applySharedToProgress();renderHome();return;}
   try{const url=new URL(CONFIG.sheetEndpoint);url.searchParams.set('action','state');url.searchParams.set('t',Date.now());
-    const r=await fetch(url.toString());shared=normaliseShared(await r.json());saveShared();}catch{loadShared();}
+    const r=await fetch(url.toString());const raw=await r.json();
+    if(checkRemoteReset(raw))return;
+    shared=normaliseShared(raw);saveShared();}catch{loadShared();}
   applySharedToProgress();applyGrants();renderHome();syncPlayer();
 }
 async function postRemote(payload){
@@ -938,8 +1004,15 @@ function syncPlayer(){
     }});
   },1500);
 }
+function checkRemoteReset(data){
+  const stamp=data&&data.resetStamp?String(data.resetStamp):'';
+  if(!stamp)return false;
+  const mine=localStorage.getItem(RESET_KEY)||'';
+  if(mine!==stamp){wipeLocal(stamp);location.reload();return true;}
+  return false;
+}
 function normaliseShared(data){
-  const c=freshShared();c.updatedAt=data?.updatedAt||null;c.players=Array.isArray(data?.players)?data.players:[];c.grants=Array.isArray(data?.grants)?data.grants:[];
+  const c=freshShared();c.updatedAt=data?.updatedAt||null;c.players=Array.isArray(data?.players)?data.players:[];c.grants=Array.isArray(data?.grants)?data.grants:[];c.resetStamp=data?.resetStamp||null;
   c.submissions=Array.isArray(data?.submissions)?data.submissions.map(i=>({
     id:String(i.id||i.ID||''),username:String(i.username||i.Username||''),stopId:String(i.stopId||i.StopID||''),
     stopTitle:String(i.stopTitle||i.StopTitle||''),day:String(i.day||i.Day||''),hotel:String(i.hotel||i.Hotel||''),
@@ -1632,7 +1705,7 @@ function mpRoom(body,game,code,me,isHost){
 }
 
 /* ---- view switching ---- */
-const VIEWS=['homeView','gamesView','musicView','postView','charView'];
+const VIEWS=['homeView','gamesView','musicView','postView'];
 function showView(id){
   stopGame();stopHeadsUp();if(typeof mpStop==='function')mpStop();
   document.getElementById('levelView').classList.add('hidden');
@@ -1640,7 +1713,7 @@ function showView(id){
   document.querySelectorAll('.vtab').forEach(b=>b.classList.toggle('active',b.dataset.view===id));
   if(id==='gamesView')renderHub();
   if(id==='postView')renderPostcards();
-  if(id==='charView'){renderCharacter();renderShop();renderSeason();wireCharStage();}
+
   if(id==='homeView')renderHome();
   window.scrollTo(0,0);
 }
