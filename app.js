@@ -140,6 +140,7 @@ function renderCountdown(){
 /* ---------- views ---------- */
 function stopGame(){if(activeGame?.stop)activeGame.stop();activeGame=null;}
 function showHome(){
+  showSubmitBar(false);CURRENT_LEVEL=null;
   stopGame();currentLevel=null;
   els.levelView.classList.add('hidden');els.homeView.classList.remove('hidden');
   renderHome();window.scrollTo(0,0);
@@ -192,6 +193,38 @@ function renderMap(){
   });
 }
 
+/* ===== STICKY SUBMIT BAR — wired once at startup, immune to render errors ===== */
+function showSubmitBar(on){
+  const bar=document.getElementById('submitBar');if(!bar)return;
+  bar.classList.toggle('hidden',!on);
+  document.body.classList.toggle('has-submit-bar',!!on);
+}
+function updateSubmitBar(){
+  const bar=document.getElementById('submitBar');if(!bar||!CURRENT_LEVEL)return;
+  const stop=CURRENT_LEVEL.stop,st=statusForStop(stop.id);
+  const cnt=document.getElementById('sbCount'),hint=document.getElementById('sbHint'),btn=document.getElementById('sbBtn');
+  if(session&&session.test){cnt.textContent='TEST';hint.textContent='Submit any time';btn.disabled=false;btn.textContent='📤 Submit for review';bar.classList.remove('sb-ready');return;}
+  if(st==='approved'){cnt.textContent='✓';hint.textContent='Mission cleared!';btn.disabled=true;btn.textContent='⭐ Cleared';return;}
+  const steps=missionSteps(stop),done=steps.filter(s=>s.ok).length;
+  cnt.textContent=done+'/'+steps.length;
+  const miss=steps.find(s=>!s.ok);
+  hint.textContent=st==='pending'?'In review — tap to resend':(miss?'Next: '+miss.label:'All done — submit it!');
+  btn.disabled=false;
+  btn.textContent=st==='pending'?'⏳ Resend for review':'📤 Submit for review';
+  bar.classList.toggle('sb-ready',done===steps.length);
+}
+/* attached at load — can never be lost by a broken section */
+document.addEventListener('DOMContentLoaded',wireSubmitBar);
+wireSubmitBar();
+function wireSubmitBar(){
+  const btn=document.getElementById('sbBtn');if(!btn||btn.dataset.on)return;btn.dataset.on='1';
+  btn.onclick=function(){
+    if(!CURRENT_LEVEL){toast('Open a stop first.');return;}
+    toast('Checking your mission…');
+    submitStop(CURRENT_LEVEL.stop,CURRENT_LEVEL.index,CURRENT_LEVEL.cs,CURRENT_LEVEL.root);
+  };
+}
+
 /* big centre-screen message — so a button tap always shows something */
 function toast(msg,ms){
   let t=document.getElementById('r66toast');
@@ -239,6 +272,7 @@ function renderLevel(index){
   /* WIRE THE BUTTON FIRST — so a failure in any section below can never kill it */
   const submit=root.querySelector('.submit'),cs=root.querySelector('.completeStatus');
   CURRENT_LEVEL={stop:stop,index:index,cs:cs,root:root};
+  wireSubmitBar();showSubmitBar(!isAdmin());setTimeout(updateSubmitBar,0);
   if(isAdmin())submit.classList.add('hidden');
   submit.dataset.wired='1';
   submit.onclick=function(){toast('Checking your mission…');submitStop(stop,index,cs,root);};
@@ -253,6 +287,7 @@ function renderLevel(index){
   safe('arcade',()=>renderArcade(root,stop));
   safe('quiz',()=>renderQuiz(root,stop));
   safe('tags',()=>refreshTaskTags(root,stop));
+  safe('bar',()=>updateSubmitBar());
 
   if(locked){submit.disabled=true;root.querySelectorAll('input,textarea,button,canvas').forEach(e=>{if(!e.classList.contains('submit'))e.disabled=true;});}
   if(status==='approved'){submit.disabled=true;submit.textContent='⭐ Mission cleared';}
@@ -273,6 +308,7 @@ function refreshTaskTags(root,stop){
   root.querySelector('.arcade-sec')?.classList.toggle('task-complete',Boolean(progress.game[stop.id]?.complete));
   root.querySelector('.quiz-sec')?.classList.toggle('task-complete',Boolean(progress.quiz[stop.id]?.correct));
   renderMissionCheck(root,stop);
+  try{updateSubmitBar();}catch(_){/**/}
 }
 /* live checklist so you can always see what's still missing */
 function missionSteps(stop){
@@ -1707,7 +1743,7 @@ function mpRoom(body,game,code,me,isHost){
 /* ---- view switching ---- */
 const VIEWS=['homeView','gamesView','musicView','postView'];
 function showView(id){
-  stopGame();stopHeadsUp();if(typeof mpStop==='function')mpStop();
+  showSubmitBar(false);CURRENT_LEVEL=null;stopGame();stopHeadsUp();if(typeof mpStop==='function')mpStop();
   document.getElementById('levelView').classList.add('hidden');
   VIEWS.forEach(v=>document.getElementById(v)?.classList.toggle('hidden',v!==id));
   document.querySelectorAll('.vtab').forEach(b=>b.classList.toggle('active',b.dataset.view===id));
