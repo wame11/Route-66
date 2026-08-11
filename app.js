@@ -798,6 +798,14 @@ function arcadeSummary(stop){const st=gameState(stop.id);const games=gamesFor(st
   return 'Games won '+winsCount(stop)+'/5 · '+games.map((g,i)=>g.n+': '+(st.perGame[i]?.best||0)+(st.perGame[i]?.won?'🏆':'')).join(' · ');}
 function suggestedBonus(stop){return Math.min(25,Math.max(0,(winsCount(stop)-1))*WIN_BONUS_PER_EXTRA);}
 async function submitStop(stop,index,cs,root){
+  try{ await submitStopInner(stop,index,cs,root); }
+  catch(err){
+    console.error('[R66] submit failed:',err);
+    toast('⚠️ Submit error: '+(err&&err.message?err.message:'unknown'),5000);
+    if(cs)cs.textContent='Submit error — tell Ethan: '+(err&&err.message);
+  }
+}
+async function submitStopInner(stop,index,cs,root){
   if(session.test){progress.completed[stop.id]=true;progress.points[stop.id]=SCORE_PER_STOP;saveProgress();burst(root);setTimeout(showHome,900);return;}
   const problem=validateStop(stop,index);
   if(problem){
@@ -811,7 +819,7 @@ async function submitStop(stop,index,cs,root){
   const photo=progress.photos[stop.id]||{};
   /* every hunt-item photo goes to the boss too, labelled with the task */
   const hp=progress.huntPhotos[stop.id]||{};
-  const tasks=huntFor(stop);
+  const tasks=myHunt(stop);
   const huntImages=Object.keys(hp).map(k=>({index:Number(k),label:tasks[Number(k)]||('Item '+(Number(k)+1)),dataUrl:hp[k]?.dataUrl||''})).filter(x=>x.dataUrl);
   const sub={id:session.username+'-'+stop.id+'-'+Date.now(),username:session.username,stopId:stop.id,stopTitle:stop.title,day:stop.day,hotel:stop.hotel,
     score:SCORE_PER_STOP,bonus:0,status:'pending',submittedAt:new Date().toISOString(),updatedAt:new Date().toISOString(),
