@@ -7,7 +7,7 @@ const ACCOUNTS={
   admin:{role:'admin',hash:'7f3d56bb44da1a1f5239ac9db712488db90f135d999290ed9104eba8691096e2'}
 };
 /* Paste your Google Apps Script /exec URL into sheetEndpoint to sync across devices. */
-const DATA_VERSION='reset-2026-08-A'; /* bump this to force every device to start fresh */
+const DATA_VERSION='reset-2026-08-B'; /* bump this to force every device to start fresh */
 const CONFIG={sheetEndpoint:'https://script.google.com/macros/s/AKfycbx_qOmtVWPm7BuClVf1Yj-w4pV7OyWgEzxntc89hgxNeQ9FB-acd6j5NcC0rO7wgkGy/exec',sheetUrl:'',youtubeKey:'AIzaSyC97QvLqWtLZ339RY01Zfv2ghEVJWr14TE'};
 /* Departure: 12 Aug 2026, 11:40 UK time (BST = UTC+1) */
 const DEPARTURE=Date.UTC(2026,7,12,10,40,0);
@@ -47,9 +47,11 @@ const els={
 /* one-time hard reset across all devices */
 (function hardReset(){
   try{
-    if(localStorage.getItem('r66-data-version')===DATA_VERSION)return;
-    Object.keys(localStorage).filter(k=>k.startsWith('r66')).forEach(k=>localStorage.removeItem(k));
-    localStorage.setItem('r66-data-version',DATA_VERSION);
+    if(localStorage.getItem('route66-data-version')===DATA_VERSION)return;
+    /* wipe EVERY key this app has ever used (route66-*, r66-*) */
+    Object.keys(localStorage).filter(k=>/^(route66|r66)/i.test(k)).forEach(k=>localStorage.removeItem(k));
+    try{sessionStorage.clear();}catch(_){/**/}
+    localStorage.setItem('route66-data-version',DATA_VERSION);
     console.log('[R66] fresh start applied');
   }catch(_){/**/}
 })();
