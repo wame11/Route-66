@@ -61,7 +61,30 @@ function readJson(k,f=null){try{const v=localStorage.getItem(k);return v?JSON.pa
 function writeJson(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch{return false;}}
 function progressKey(){return STORAGE.progressPrefix+(session?.username||'guest');}
 function loadProgress(){progress=mergeProgress(readJson(progressKey(),null));if(session&&session.test)progress.chips=999999;}
-function saveProgress(){if(session?.role!=='admin'&&!writeJson(progressKey(),progress)){alert('Phone storage is full — oldest photos may not save. Ask Ethan to sync!');}}
+function saveProgress(){
+  if(session?.role==='admin')return;
+  if(writeJson(progressKey(),progress))return;
+  /* Storage full: photos for stops already sent/approved are safely on the server,
+     so drop them locally (oldest first) and try again. */
+  if(purgeOldPhotos()&&writeJson(progressKey(),progress)){toast('📦 Freed up space — older photos are safe on the server.');return;}
+  if(purgeOldPhotos(true)&&writeJson(progressKey(),progress)){toast('📦 Freed up space — photos are safe on the server.');return;}
+  toast('⚠️ Storage still full. Tap SYNC, then reopen the app.',5000);
+}
+/* Remove locally-cached photos we no longer need. aggressive=also clear pending ones. */
+function purgeOldPhotos(aggressive){
+  let freed=false;
+  const order=STOPS.map(s=>s.id);
+  order.forEach(id=>{
+    const st=statusForStop(id);
+    const safe=aggressive?(st==='approved'||st==='pending'):(st==='approved');
+    if(!safe)return;
+    if(progress.photos&&progress.photos[id]&&progress.photos[id].dataUrl){
+      progress.photos[id]={name:progress.photos[id].name||'',dataUrl:'',onServer:true};freed=true;}
+    const hp=progress.huntPhotos&&progress.huntPhotos[id];
+    if(hp)Object.keys(hp).forEach(k=>{if(hp[k]&&hp[k].dataUrl){hp[k]={dataUrl:'',onServer:true};freed=true;}});
+  });
+  return freed;
+}
 function mergeProgress(s){const m=freshProgress();if(!s||typeof s!=='object')return m;Object.keys(m).forEach(k=>{if(k==='chips'){m.chips=Number.isFinite(s.chips)?s.chips:85;}else{m[k]=s[k]&&typeof s[k]==='object'?s[k]:m[k];}});return m;}
 function loadShared(){shared=normaliseShared(readJson(STORAGE.shared,freshShared()));}
 function saveShared(){shared.updatedAt=new Date().toISOString();writeJson(STORAGE.shared,shared);}
@@ -159,7 +182,7 @@ function renderHome(){
   els.adminPanel.classList.toggle('hidden',!isAdmin());
   els.leaderboard.classList.toggle('hidden',!isAdmin());
   els.hud.classList.toggle('hidden',isAdmin());
-  renderAdminPanel();renderChipGrant();renderLeaderboard();renderReward();
+  renderAdminPanel();renderChipGrant();renderResetBox();renderLeaderboard();renderReward();
   if(!isAdmin()){
     const done=STOPS.filter(s=>statusForStop(s.id)==='approved').length;
     const pct=Math.round(done/STOPS.length*100);
@@ -304,9 +327,9 @@ document.addEventListener('click',e=>{
   submitStop(CURRENT_LEVEL.stop,CURRENT_LEVEL.index,CURRENT_LEVEL.cs,CURRENT_LEVEL.root);
 });
 function refreshTaskTags(root,stop){
-  root.querySelector('.proof')?.classList.toggle('task-complete',Boolean(progress.photos[stop.id]?.dataUrl));
+  root.querySelector('.proof')?.classList.toggle('task-complete',Boolean(progress.photos[stop.id]?.dataUrl||progress.photos[stop.id]?.onServer));
   const hp=progress.huntPhotos[stop.id]||{};
-  root.querySelector('.hunt-sec')?.classList.toggle('task-complete',myHunt(stop).every((_,i)=>hp[i]?.dataUrl));
+  root.querySelector('.hunt-sec')?.classList.toggle('task-complete',myHunt(stop).every((_,i)=>hp[i]?.dataUrl||hp[i]?.onServer));
   root.querySelector('.arcade-sec')?.classList.toggle('task-complete',Boolean(progress.game[stop.id]?.complete));
   root.querySelector('.quiz-sec')?.classList.toggle('task-complete',Boolean(progress.quiz[stop.id]?.correct));
   renderMissionCheck(root,stop);
@@ -316,9 +339,9 @@ function refreshTaskTags(root,stop){
 function missionSteps(stop){
   const hp=progress.huntPhotos[stop.id]||{};
   const hunt=myHunt(stop);
-  const doneHunt=hunt.filter((_,i)=>hp[i]?.dataUrl).length;
+  const doneHunt=hunt.filter((_,i)=>hp[i]?.dataUrl||hp[i]?.onServer).length;
   return [
-    {ok:Boolean(progress.photos[stop.id]?.dataUrl),label:'Arrival photo',sel:'.proof'},
+    {ok:Boolean(progress.photos[stop.id]?.dataUrl||progress.photos[stop.id]?.onServer),label:'Arrival photo',sel:'.proof'},
     {ok:doneHunt===hunt.length,label:'Hunt photos ('+doneHunt+'/'+hunt.length+')',sel:'.hunt-sec'},
     {ok:Boolean(progress.game[stop.id]?.complete),label:'Win 1 arcade game',sel:'.arcade-sec'},
     {ok:Boolean(progress.quiz[stop.id]?.correct),label:'Beat the boss quiz',sel:'.quiz-sec'}
@@ -342,7 +365,7 @@ function renderProof(root,stop){
   input.addEventListener('change',async e=>{
     const file=e.target.files[0];if(!file)return;
     st.textContent='Saving…';
-    try{const dataUrl=await imageToThumb(file,480,0.6);progress.photos[stop.id]={name:file.name,dataUrl};prev.src=dataUrl;prev.classList.remove('hidden');st.textContent='Photo locked in ✓';saveProgress();refreshTaskTags(root,stop);}
+    try{const dataUrl=await imageToThumb(file,400,0.5);progress.photos[stop.id]={name:file.name,dataUrl};prev.src=dataUrl;prev.classList.remove('hidden');st.textContent='Photo locked in ✓';saveProgress();refreshTaskTags(root,stop);}
     catch{st.textContent='Could not read that image — try another.';}
   });
 }
@@ -786,9 +809,9 @@ function renderQuiz(root,stop){
 function validateStop(stop,index){
   if(!unlocked(index))return lockReason(index);
   if(session.test)return '';
-  if(!progress.photos[stop.id]?.dataUrl)return '📸 Arrival photo needed first!';
+  if(!(progress.photos[stop.id]?.dataUrl||progress.photos[stop.id]?.onServer))return '📸 Arrival photo needed first!';
   const hp=progress.huntPhotos[stop.id]||{};
-  if(!myHunt(stop).every((_,i)=>hp[i]?.dataUrl))return 'Snap a photo for every scavenger target first.';
+  if(!myHunt(stop).every((_,i)=>hp[i]?.dataUrl||hp[i]?.onServer))return 'Snap a photo for every scavenger target first.';
   if(!progress.game[stop.id]?.complete)return '🕹️ Win at least ONE arcade game first!';
   if(!progress.quiz[stop.id]?.checked)return 'Check the quiz answers first.';
   if(!progress.quiz[stop.id]?.correct)return 'Beat the boss quiz first.';
@@ -831,7 +854,7 @@ async function submitStopInner(stop,index,cs,root){
   if(i>=0)shared.submissions[i]=localCopy;else shared.submissions.push(localCopy);
   saveShared();
   progress.submitted[stop.id]={id:sub.id,status:'pending'};saveProgress();
-  cs.textContent='Mission sent to the boss! 🎉';toast('✅ Sent for review!');burst(root);bearCelebrate('MISSION COMPLETE! Legend! 🏆');syncPlayer();
+  cs.textContent='Mission sent to the boss! 🎉';toast('✅ Sent for review!');try{purgeOldPhotos(true);saveProgress();}catch(_){/**/}burst(root);bearCelebrate('MISSION COMPLETE! Legend! 🏆');syncPlayer();
   await postRemote({action:'submit',submission:sub});
   setTimeout(showHome,900);
 }
@@ -876,6 +899,30 @@ async function resetEverything(){
     setTimeout(()=>location.reload(),1500);
   } else if(st)st.textContent='❌ Could not reach the server — check the backend is connected.';
 }
+function renderResetBox(){
+  if(!isAdmin())return;
+  const host=document.getElementById('resetBox');if(!host)return;
+  host.innerHTML='<h3>🧹 Danger zone</h3>'+
+    '<p class="grant-note">Wipes saved progress, photos, chips and logins <b>on THIS device</b>. Each phone needs it done once. It does NOT delete rows in your Google Sheet — do that from the sheet.</p>'+
+    '<div class="grant-row"><button type="button" class="btn btn-danger reset-go">🧹 Reset this device</button>'+
+    '<button type="button" class="btn btn-quiet reset-shared">♻️ Clear cached submissions only</button></div>'+
+    '<p class="grant-status reset-status"></p>';
+  host.querySelector('.reset-go').addEventListener('click',()=>{
+    if(!confirm('Wipe ALL saved data on this device?\n\nEveryone signed in on this phone starts from zero (85 chips, 0 points).'))return;
+    try{
+      Object.keys(localStorage).filter(k=>/^(route66|r66)/i.test(k)).forEach(k=>localStorage.removeItem(k));
+      sessionStorage.clear();
+      host.querySelector('.reset-status').textContent='✅ Wiped. Reloading…';
+      setTimeout(()=>location.reload(),700);
+    }catch(e){host.querySelector('.reset-status').textContent='❌ '+e.message;}
+  });
+  host.querySelector('.reset-shared').addEventListener('click',()=>{
+    try{localStorage.removeItem(STORAGE.shared);shared=freshShared();saveShared();
+      host.querySelector('.reset-status').textContent='✅ Cached submissions cleared. Pulling fresh from the sheet…';
+      syncShared();
+    }catch(e){host.querySelector('.reset-status').textContent='❌ '+e.message;}
+  });
+}
 function renderChipGrant(){
   if(!isAdmin())return;
   const host=document.getElementById('chipGrantBox');if(!host)return;
@@ -904,8 +951,8 @@ function renderChipGrant(){
     st.textContent='Sending…';
     const r=await apiPost({action:'grantChips',username:who,amount:amt,reason:why,createdBy:session.username,adminKey:session.adminKey});
     if(r&&r.ok){st.textContent='✅ '+(amt>0?'Gave ':'Took ')+Math.abs(amt)+' chips '+(amt>0?'to ':'from ')+who+(why?' — "'+why+'"':'')+'. They get it next time they open the app.';
-      host.querySelector('.grant-why').value='';shared.grants=r.grants||shared.grants;saveShared();}
-    else st.textContent='❌ Could not reach the server. Check the backend is connected.';
+      host.querySelector('.grant-why').value='';shared.grants=r.grants||shared.grants;saveShared();toast('✅ Chips sent to '+who);}
+    else {const msg=(r&&r.error)?r.error:'Unknown error';st.textContent='❌ '+msg;toast('❌ '+msg,5000);console.error('[R66] grantChips failed:',r);}
   });
 }
 
@@ -1022,7 +1069,9 @@ async function syncShared(){
     const r=await fetch(url.toString());const raw=await r.json();
     if(checkRemoteReset(raw))return;
     shared=normaliseShared(raw);saveShared();}catch{loadShared();}
-  applySharedToProgress();applyGrants();renderHome();syncPlayer();
+  applySharedToProgress();applyGrants();
+  try{if(purgeOldPhotos()){writeJson(progressKey(),progress);}}catch(_){/**/}
+  renderHome();syncPlayer();
 }
 async function postRemote(payload){
   if(!CONFIG.sheetEndpoint)return null;
@@ -1030,7 +1079,19 @@ async function postRemote(payload){
     const data=await r.json();if(data?.submissions){shared=normaliseShared(data);saveShared();}return data;}catch{return null;}
 }
 /* ===== API helpers for players + rooms ===== */
-async function apiPost(payload){if(!CONFIG.sheetEndpoint)return null;try{const r=await fetch(CONFIG.sheetEndpoint,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});return await r.json();}catch(_){return null;}}
+async function apiPost(payload){
+  if(!CONFIG.sheetEndpoint)return {ok:false,error:'No backend URL set in app.js (CONFIG.sheetEndpoint).'};
+  try{
+    const r=await fetch(CONFIG.sheetEndpoint,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
+    const text=await r.text();
+    try{return JSON.parse(text);}
+    catch(_){
+      /* Apps Script returns an HTML page when the script throws */
+      const m=text.match(/(Bad admin key|Missing submission fields|Exception:[^<]{0,120}|Error:[^<]{0,120})/i);
+      return {ok:false,error:m?m[0]:'Server sent a non-JSON reply (HTTP '+r.status+'). Redeploy the Apps Script as a NEW VERSION with access "Anyone".'};
+    }
+  }catch(e){return {ok:false,error:'Network error: '+(e&&e.message?e.message:'offline?')};}
+}
 async function apiGet(params){if(!CONFIG.sheetEndpoint)return null;try{const u=new URL(CONFIG.sheetEndpoint);Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));u.searchParams.set('t',Date.now());const r=await fetch(u.toString());return await r.json();}catch(_){return null;}}
 /* push this player's live stats so admin sees them */
 let _syncT=null;
